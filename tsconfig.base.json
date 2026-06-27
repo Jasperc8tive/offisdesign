@@ -20,16 +20,15 @@
     "verbatimModuleSyntax": false,
     "forceConsistentCasingInFileNames": true,
     "incremental": true,
-    "baseUrl": ".",
     "paths": {
-      "@offisdesign/ui": ["packages/ui/src/index.ts"],
-      "@offisdesign/ui/*": ["packages/ui/src/*"],
-      "@offisdesign/config": ["packages/config/src/index.ts"],
-      "@offisdesign/config/*": ["packages/config/src/*"],
-      "@offisdesign/types": ["packages/types/src/index.ts"],
-      "@offisdesign/utils": ["packages/utils/src/index.ts"],
-      "@offisdesign/database": ["packages/database/src/index.ts"],
-      "@offisdesign/storage": ["packages/storage/src/index.ts"]
+      "@offisdesign/ui": ["./packages/ui/src/index.ts"],
+      "@offisdesign/ui/*": ["./packages/ui/src/*"],
+      "@offisdesign/config": ["./packages/config/src/index.ts"],
+      "@offisdesign/config/*": ["./packages/config/src/*"],
+      "@offisdesign/types": ["./packages/types/src/index.ts"],
+      "@offisdesign/utils": ["./packages/utils/src/index.ts"],
+      "@offisdesign/database": ["./packages/database/src/index.ts"],
+      "@offisdesign/storage": ["./packages/storage/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "**/dist", "**/.next", "**/build", "**/storybook-static"]

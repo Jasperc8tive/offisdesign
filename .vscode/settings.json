@@ -1,3 +1,5 @@
 {
-  "deepscan.enable": true
+  "deepscan.enable": true,
+  "// edge-tools": "The Microsoft Edge Tools webhint integration statically axe-lints isolated .tsx source, which it cannot render — producing false-positive ARIA/inline-style diagnostics against correct components (real a11y is covered by tests, ESLint + tsc stay clean). Disabled here; the scoped .hintrc keeps it precise if ever re-enabled.",
+  "vscode-edge-devtools.webhint": false
 }
