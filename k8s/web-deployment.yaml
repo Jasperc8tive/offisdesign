@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: offis-web
+  namespace: offisdesign
+spec:
+  replicas: 2
+  strategy: { type: RollingUpdate, rollingUpdate: { maxSurge: 1, maxUnavailable: 0 } }
+  selector:
+    matchLabels: { app: offis-web }
+  template:
+    metadata:
+      labels: { app: offis-web }
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: web
+          image: ghcr.io/offisdesign/web:latest
+          ports: [{ containerPort: 3000, name: http }]
+          env:
+            - { name: NEXT_PUBLIC_API_URL, value: 'https://api.offisdesign.com' }
+            - { name: NEXT_PUBLIC_WEB_URL, value: 'https://offisdesign.com' }
+          livenessProbe: { httpGet: { path: '/', port: http }, periodSeconds: 15 }
+          readinessProbe: { httpGet: { path: '/', port: http }, periodSeconds: 5 }
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { cpu: 1, memory: 1Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: offis-web
+  namespace: offisdesign
+spec:
+  selector: { app: offis-web }
+  ports: [{ port: 80, targetPort: 3000 }]

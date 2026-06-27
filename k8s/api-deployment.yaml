@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: offis-api
+  namespace: offisdesign
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: offis-api
+  template:
+    metadata:
+      labels:
+        app: offis-api
+    spec:
+      # 30s gives Nest time to call onModuleDestroy on every provider
+      # (BullMQ drain, Prisma disconnect). Match your platform's grace.
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: api
+          image: ghcr.io/offisdesign/api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4000
+              name: http
+          envFrom:
+            - secretRef:
+                name: offis-secrets
+          # Probes hit the dedicated /v1/system endpoints, not /. Liveness is
+          # cheap (always 200), readiness checks DB/Redis/queue/storage so
+          # k8s pulls a degraded pod out of the Service before requests fail.
+          startupProbe:
+            httpGet:
+              path: /v1/system/livez
+              port: http
+            failureThreshold: 30
+            periodSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /v1/system/livez
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /v1/system/readyz
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+          resources:
+            requests: { cpu: 200m, memory: 256Mi }
+            limits: { cpu: 1, memory: 1Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: offis-api
+  namespace: offisdesign
+spec:
+  selector:
+    app: offis-api
+  ports:
+    - port: 80
+      targetPort: 4000
+      protocol: TCP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: offis-api
+  namespace: offisdesign
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: offis-api
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Storybook canvas base — keeps stories rendering with our brand background. */
+body {
+  background: var(--background);
+  color: var(--text);
+  font-family: Quicksand, system-ui, sans-serif;
+}

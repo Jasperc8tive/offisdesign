@@ -1,0 +1,100 @@
+# Production-style docker-compose. Suitable for single-node deployments
+# (Coolify, a self-hosted VPS, an internal staging box). For Kubernetes /
+# Fly.io / Render, see docs/deployment.md and the manifests under k8s/.
+#
+# Networking:
+#   web      → public 443 (terminate TLS at your reverse proxy)
+#   admin    → public 443 (gated by your auth proxy or VPN)
+#   api      → private; web/admin call it over the internal network
+#   worker   → no port; processes BullMQ queues
+#   postgres → private
+#   redis    → private
+#
+# Secrets are sourced from the host's environment — *not* committed.
+# Copy .env.production.example into your secrets manager and provide it
+# via `env_file` or platform-native secret injection.
+
+x-app-env: &app-env
+  env_file:
+    - ../.env.production
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: offisdesign
+      POSTGRES_USER: ${POSTGRES_USER:-offis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', '${POSTGRES_USER:-offis}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--save', '60', '1', '--appendonly', 'yes']
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - redis_data:/data
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    <<: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.worker
+    <<: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      # Scale via `docker compose up --scale worker=4` or platform-native UI.
+      replicas: 1
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.web
+    env_file:
+      - ../apps/web/.env.production
+    depends_on:
+      api:
+        condition: service_started
+    restart: unless-stopped
+
+  admin:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.admin
+    env_file:
+      - ../apps/admin/.env.production
+    depends_on:
+      api:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

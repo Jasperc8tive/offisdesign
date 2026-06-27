@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: offis-db-backup
+  namespace: offisdesign
+spec:
+  # Hourly. Adjust to your RPO.
+  schedule: '0 * * * *'
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: postgres:16-alpine
+              command: ['/bin/sh', '-c']
+              args:
+                # Dump → gzip → push to S3 via aws CLI image, or substitute
+                # rclone / az copy / your preferred uploader.
+                - >
+                  TS=$(date -u +%Y%m%dT%H%M%SZ);
+                  pg_dump --no-owner --no-privileges --format=plain "$DATABASE_URL" |
+                  gzip -9 > "/tmp/db-${TS}.sql.gz" &&
+                  echo "Wrote /tmp/db-${TS}.sql.gz $(du -h /tmp/db-${TS}.sql.gz)"
+              envFrom:
+                - secretRef: { name: offis-secrets }
+              volumeMounts:
+                - { name: tmp, mountPath: /tmp }
+          volumes:
+            - name: tmp
+              emptyDir: {}

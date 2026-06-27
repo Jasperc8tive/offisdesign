@@ -1,0 +1,41 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build output
+dist
+build
+.next
+out
+storybook-static
+*.tsbuildinfo
+
+# Turbo
+.turbo
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage
+.nyc_output
+
+# Misc
+.cache
+.parcel-cache

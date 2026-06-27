@@ -1,0 +1,51 @@
+# syntax=docker/dockerfile:1.7
+#
+# Production Dockerfile for the API.
+# Multi-stage:
+#   base   → enables pnpm via corepack
+#   deps   → installs the workspace deps (cached via mount)
+#   build  → compiles the NestJS app via turbo
+#   runner → minimal runtime image, runs as non-root with HEALTHCHECK
+
+FROM node:20.18-alpine AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+FROM base AS deps
+WORKDIR /repo
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
+COPY turbo.json tsconfig.base.json ./
+COPY packages ./packages
+COPY apps/api ./apps/api
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+
+FROM deps AS build
+WORKDIR /repo
+RUN pnpm --filter @offisdesign/api... build
+
+FROM base AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=4000
+
+# Tini gives us a real PID 1 that forwards SIGTERM correctly. Without it,
+# Node never sees the signal and Nest's shutdown hooks never fire — the
+# container is hard-killed after the orchestrator's grace period.
+RUN apk add --no-cache tini curl \
+ && addgroup -S app && adduser -S app -G app
+
+COPY --from=build --chown=app:app /repo/apps/api/dist ./dist
+COPY --from=build --chown=app:app /repo/apps/api/package.json ./package.json
+COPY --from=build --chown=app:app /repo/node_modules ./node_modules
+
+USER app
+EXPOSE 4000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD curl -fsS "http://127.0.0.1:${PORT}/v1/system/livez" || exit 1
+
+ENTRYPOINT ["/sbin/tini", "--"]
+# nest-cli emits the workspace-rooted tree; the API entry sits at
+# dist/apps/api/src/main.js, not dist/main.js.
+CMD ["node", "dist/apps/api/src/main.js"]

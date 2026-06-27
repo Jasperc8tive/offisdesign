@@ -1,0 +1,11 @@
+export { catalogService } from './catalog';
+export { searchService } from './search';
+export { cartService } from './cart';
+export { customerService } from './customer';
+export { checkoutService } from './checkout';
+export { cmsService } from './cms';
+export { opsService } from './ops';
+export { marketingService } from './marketing';
+export { reviewsService } from './reviews';
+export { wishlistService } from './wishlist';
+export { inventoryService } from './inventory';

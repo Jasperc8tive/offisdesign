@@ -1,0 +1,15 @@
+# Production cron template. Install via the platform's scheduler
+# (Kubernetes CronJob, Coolify scheduled jobs, Render Cron Jobs, etc.)
+# Times are UTC.
+
+# Hourly: nightly is not enough for a transactional store.
+# Adjust to your RPO; the default targets ≤ 1 hour of data loss.
+0 * * * *   /app/scripts/backup.sh /var/backups/offisdesign
+
+# Daily 02:15 UTC: prune retired carts and audit older than 90 days.
+15 2 * * *  curl -fsS -X POST -H "Authorization: Bearer ${OPS_TOKEN}" \
+              "${API_PUBLIC_URL}/v1/admin/ops/cleanup/run"
+
+# Hourly: reconcile abandoned-checkout state.
+30 * * * *  curl -fsS -X POST -H "Authorization: Bearer ${OPS_TOKEN}" \
+              "${API_PUBLIC_URL}/v1/admin/ops/abandoned-checkout/scan"

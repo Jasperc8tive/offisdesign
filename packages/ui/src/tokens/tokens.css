@@ -1,0 +1,46 @@
+/**
+ * Canonical CSS-variable contract. Imported once at the app root.
+ * Components reference var(--*) (or Tailwind tokens that map to these),
+ * never raw hex. This file mirrors `cssVars` + `shadcnHsl` in theme.ts.
+ */
+
+:root {
+  /* Brand */
+  --primary: #b81f34;
+  --secondary: #410c14;
+  --accent: #350d13;
+  --background: #fefefe;
+  --text: #410c14;
+
+  /* Derived states */
+  --primary-hover: #a01b2d;
+  --primary-active: #8a1727;
+  --primary-subtle: rgba(184, 31, 52, 0.08);
+  --border: rgba(65, 12, 20, 0.14);
+  --border-strong: rgba(65, 12, 20, 0.28);
+  --muted: rgba(65, 12, 20, 0.66);
+  --on-dark: #fefefe;
+  --focus-ring: rgba(184, 31, 52, 0.45);
+
+  /* shadcn/ui — HSL channels (no hsl() wrapper) */
+  --shadcn-background: 0 0% 100%;
+  --shadcn-foreground: 349 70% 15%;
+  --shadcn-primary: 350 71% 42%;
+  --shadcn-primary-foreground: 0 0% 100%;
+  --shadcn-secondary: 349 70% 15%;
+  --shadcn-secondary-foreground: 0 0% 100%;
+  --shadcn-accent: 350 60% 13%;
+  --shadcn-accent-foreground: 0 0% 100%;
+  --shadcn-muted: 349 30% 96%;
+  --shadcn-muted-foreground: 349 25% 35%;
+  --shadcn-border: 349 30% 88%;
+  --shadcn-input: 349 30% 88%;
+  --shadcn-ring: 350 71% 42%;
+  --shadcn-card: 0 0% 100%;
+  --shadcn-card-foreground: 349 70% 15%;
+  --shadcn-popover: 0 0% 100%;
+  --shadcn-popover-foreground: 349 70% 15%;
+  --shadcn-destructive: 350 71% 42%;
+  --shadcn-destructive-foreground: 0 0% 100%;
+  --shadcn-radius: 4px;
+}
