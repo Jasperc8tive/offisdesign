@@ -14,10 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with: { version: 9 }
+      # Pin to match ci.yml so dependency-audit and CI build resolve the same
+      # tree. Drifting versions across workflows can produce false positives
+      # (or worse, false negatives) in `pnpm audit`.
+      - uses: pnpm/action-setup@v4
+        with: { version: 9.12.3 }
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: pnpm }
+        with: { node-version-file: .nvmrc, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       # `--prod` ignores devDependency advisories which we cannot ship.
       # `--audit-level=high` keeps the signal-to-noise high; tune via

@@ -34,6 +34,8 @@ model AdminUser {
   displayName  String    @map("display_name")
   isActive     Boolean   @default(true) @map("is_active")
   lastLoginAt  DateTime? @map("last_login_at") @db.Timestamptz(6)
+  /// Optimistic-locking counter; bump on every UPDATE and assert in WHERE.
+  version      Int       @default(0)
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
@@ -126,6 +128,7 @@ model Customer {
   emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamptz(6)
   marketingOptIn  Boolean   @default(false) @map("marketing_opt_in")
   lastLoginAt     DateTime? @map("last_login_at") @db.Timestamptz(6)
+  version         Int       @default(0)
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
@@ -289,6 +292,7 @@ model ProductVariant {
   compareAtAmount Int?      @map("compare_at_amount")
   weightGrams     Int?      @map("weight_grams")
   isDefault       Boolean   @default(false) @map("is_default")
+  version         Int       @default(0)
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
@@ -601,6 +605,7 @@ model Order {
   placedAt        DateTime?   @map("placed_at") @db.Timestamptz(6)
   shippingAddress Json        @map("shipping_address")
   billingAddress  Json?       @map("billing_address")
+  version         Int         @default(0)
   createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt       DateTime?   @map("deleted_at") @db.Timestamptz(6)
@@ -878,6 +883,8 @@ model WebhookDelivery {
   lastError     String?               @map("last_error")
   nextAttemptAt DateTime?             @map("next_attempt_at") @db.Timestamptz(6)
   deliveredAt   DateTime?             @map("delivered_at") @db.Timestamptz(6)
+  /// Hash of (webhookId, eventId, payload). Prevents duplicate dispatch on retry.
+  idempotencyKey String?              @unique @map("idempotency_key")
   createdAt     DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
 
   webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
@@ -923,6 +930,7 @@ model Discount {
   usageLimit  Int?          @map("usage_limit")
   usageCount  Int           @default(0) @map("usage_count")
   isActive    Boolean       @default(true) @map("is_active")
+  version     Int           @default(0)
   createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt   DateTime?     @map("deleted_at") @db.Timestamptz(6)
@@ -1205,6 +1213,8 @@ model NotificationDelivery {
   providerId  String?             @map("provider_id")
   error       String?
   attempts    Int                 @default(0)
+  /// Hash of (templateKey, recipient, payload). Prevents duplicate sends on retry.
+  idempotencyKey String?          @unique @map("idempotency_key")
   sentAt      DateTime?           @map("sent_at") @db.Timestamptz(6)
   createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)

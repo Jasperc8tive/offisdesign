@@ -73,3 +73,17 @@ Before declaring recovery complete:
 | _(not yet)_ | —     | —       |
 
 Append to this table after every real or rehearsed restore.
+
+## Pre-launch gate
+
+**A successful restore drill is a launch blocker, not a post-launch nice-to-have.**
+
+Before flipping production traffic on for the first time:
+
+1. Let the `offis-db-backup` CronJob run at least twice (verify with `kubectl get jobs -l job-name=offis-db-backup -n offisdesign`).
+2. Confirm the object exists: `aws s3 ls s3://${S3_BUCKET}/backups/db/`.
+3. Provision a scratch Postgres (any size — this is a correctness test, not a perf test).
+4. Run the **Database restore (full)** procedure above against the scratch DB end-to-end.
+5. Record the date and outcome in the table above. If the restore fails, do not proceed with launch.
+
+This gate exists because every previous launch checklist item assumes backups work; we have not yet proven they do.

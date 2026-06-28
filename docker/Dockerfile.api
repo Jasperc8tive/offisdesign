@@ -22,6 +22,10 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 FROM deps AS build
 WORKDIR /repo
+# Generate Prisma client before compiling — `tsc` will not regenerate it,
+# and a cache-cold build otherwise ships an image that crashes at boot
+# with "Cannot find module '.prisma/client'".
+RUN pnpm --filter @offisdesign/database db:generate
 RUN pnpm --filter @offisdesign/api... build
 
 FROM base AS runner

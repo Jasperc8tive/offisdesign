@@ -7,6 +7,8 @@ import { PasswordService } from './password.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Module({
+  // JwtModule.register({}) is intentional: secrets and TTLs are supplied per-call
+  // in TokenService (from ApiEnv) so the module itself needs no static config.
   imports: [JwtModule.register({})],
   controllers: [AuthController],
   providers: [AuthService, TokenService, PasswordService, JwtAuthGuard],

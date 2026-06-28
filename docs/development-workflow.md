@@ -12,12 +12,26 @@
 git clone <repo>
 cd offisdesign
 cp .env.example .env
-docker compose -f docker/docker-compose.yml up -d postgres redis
+docker compose -f docker/docker-compose.yml up -d postgres redis minio
 pnpm install
 pnpm --filter @offisdesign/database db:generate
 pnpm --filter @offisdesign/database db:migrate:dev
 pnpm --filter @offisdesign/database db:seed
 ```
+
+### Create the MinIO bucket
+
+The MinIO container ships empty; create the dev bucket so media uploads
+don't 404 on first run. Either open the console at <http://localhost:9001>
+(credentials in `docker/docker-compose.yml`) and create a bucket named
+`offisdesign-dev`, or run:
+
+```bash
+docker exec offisdesign-minio mc alias set local http://localhost:9000 offisdesign offisdesign-dev
+docker exec offisdesign-minio mc mb local/offisdesign-dev
+```
+
+The bucket name must match `STORAGE_S3_BUCKET` in your `.env`.
 
 After `db:seed`, the super-admin email + password come from
 `SEED_SUPER_ADMIN_EMAIL` / `SEED_SUPER_ADMIN_PASSWORD` in your `.env`. If you

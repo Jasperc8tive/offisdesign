@@ -1,0 +1,56 @@
+# PodDisruptionBudgets for every workload.
+#
+# Without these, a voluntary disruption (node drain, cluster upgrade, autoscaler
+# scale-down) is free to evict every replica of a service at once, causing a
+# brief but real outage even though the deployment has replicas > 1.
+#
+# `minAvailable: 1` guarantees at least one pod stays up during a disruption.
+# `maxUnavailable: 1` is the alternative spelling; pick whichever matches your
+# operational mental model. For two-replica deployments these are equivalent.
+#
+# Admin is single-replica (low traffic, no HA requirement), so its PDB allows
+# full eviction — it would otherwise block node drains indefinitely.
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: offis-api
+  namespace: offisdesign
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: offis-api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: offis-worker
+  namespace: offisdesign
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: offis-worker
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: offis-web
+  namespace: offisdesign
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: offis-web
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: offis-admin
+  namespace: offisdesign
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: offis-admin

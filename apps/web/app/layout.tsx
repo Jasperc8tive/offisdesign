@@ -3,6 +3,7 @@ import { Frank_Ruhl_Libre, Koulen, Quicksand } from 'next/font/google';
 import { Providers } from '../lib/providers';
 import { JsonLd } from '../components/seo/json-ld';
 import { websiteJsonLd } from '../components/seo/schemas';
+import { WebVitals } from '../components/observability/web-vitals';
 import { apiConfig } from '../lib/api/config';
 import '@offisdesign/ui/tokens.css';
 import './globals.css';
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${heading.variable} ${display.variable} ${body.variable}`}>
       <body className="bg-background text-text font-body antialiased">
         <JsonLd payload={websiteJsonLd()} />
+        <WebVitals />
         <Providers>{children}</Providers>
       </body>
     </html>

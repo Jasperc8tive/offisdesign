@@ -2,27 +2,35 @@ import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { loadApiEnv } from '@offisdesign/config';
+import { TimingInterceptor } from './common/timing.interceptor';
+
+const JSON_LIMIT = '2mb';
+const WEBHOOK_LIMIT = '1mb';
 
 async function bootstrap(): Promise<void> {
   const env = loadApiEnv();
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true,
+    // Disable Nest's default body parser so we can set explicit size limits and
+    // preserve the raw body for Stripe webhook signature verification.
+    bodyParser: false,
     cors: {
       origin: [env.WEB_PUBLIC_URL, env.ADMIN_PUBLIC_URL],
       credentials: true,
     },
   });
 
-  // Wire shutdown hooks. Nest's `enableShutdownHooks` listens for SIGTERM and
-  // SIGINT, then triggers `onModuleDestroy` on every provider that implements
-  // it — including QueueService, PrismaService, and RedisService. This is
-  // the difference between a graceful drain and a SIGKILL on rollout.
+  // Trust the reverse proxy (LB / ingress) one hop deep so req.ip reflects the
+  // real client address. Required for accurate rate limiting and audit logs.
+  app.set('trust proxy', 1);
+
   app.enableShutdownHooks();
 
   app.useLogger(app.get(Logger));
@@ -33,6 +41,7 @@ async function bootstrap(): Promise<void> {
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (req.originalUrl?.startsWith('/v1/payments/webhook')) {
       express.json({
+        limit: WEBHOOK_LIMIT,
         verify: (r, _res, buf) => {
           (r as unknown as { rawBody: Buffer }).rawBody = buf;
         },
@@ -41,6 +50,12 @@ async function bootstrap(): Promise<void> {
       next();
     }
   });
+  // Default JSON / form parsers for every other route, with explicit limits.
+  // Without these, a fresh deploy uses Express's 100KB default and bulk imports
+  // or large carts get rejected with no obvious error.
+  app.use(express.json({ limit: JSON_LIMIT }));
+  app.use(express.urlencoded({ extended: true, limit: JSON_LIMIT }));
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -49,6 +64,7 @@ async function bootstrap(): Promise<void> {
       transformOptions: { enableImplicitConversion: true },
     }),
   );
+  app.useGlobalInterceptors(new TimingInterceptor());
 
   if (env.OPENAPI_ENABLED) {
     const config = new DocumentBuilder()

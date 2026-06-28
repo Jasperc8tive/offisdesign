@@ -16,9 +16,14 @@ spec:
       containers:
         - name: admin
           image: ghcr.io/offisdesign/admin:latest
+          imagePullPolicy: IfNotPresent
           ports: [{ containerPort: 3001, name: http }]
           env:
             - { name: NEXT_PUBLIC_API_URL, value: 'https://api.offisdesign.com' }
+          startupProbe:
+            httpGet: { path: '/login', port: http }
+            failureThreshold: 30
+            periodSeconds: 2
           livenessProbe: { httpGet: { path: '/login', port: http }, periodSeconds: 15 }
           readinessProbe: { httpGet: { path: '/login', port: http }, periodSeconds: 5 }
           resources:

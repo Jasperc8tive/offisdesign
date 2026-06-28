@@ -88,3 +88,12 @@ spec:
         target:
           type: Utilization
           averageUtilization: 70
+    # Memory-heavy workloads (large catalog imports, bulk PDFs) can hit the
+    # memory limit before CPU climbs. Scale on memory too so HPA reacts
+    # before the kernel OOM-kills a pod.
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

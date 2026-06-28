@@ -16,10 +16,18 @@ spec:
       containers:
         - name: web
           image: ghcr.io/offisdesign/web:latest
+          imagePullPolicy: IfNotPresent
           ports: [{ containerPort: 3000, name: http }]
           env:
             - { name: NEXT_PUBLIC_API_URL, value: 'https://api.offisdesign.com' }
             - { name: NEXT_PUBLIC_WEB_URL, value: 'https://offisdesign.com' }
+          # Next.js cold start can exceed liveness periodSeconds under memory
+          # pressure; startupProbe gives the pod a finite window to come up
+          # before liveness starts failing it into a restart loop.
+          startupProbe:
+            httpGet: { path: '/', port: http }
+            failureThreshold: 30
+            periodSeconds: 2
           livenessProbe: { httpGet: { path: '/', port: http }, periodSeconds: 15 }
           readinessProbe: { httpGet: { path: '/', port: http }, periodSeconds: 5 }
           resources:

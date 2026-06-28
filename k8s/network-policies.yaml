@@ -1,0 +1,104 @@
+# Default-deny + explicit allows. Apply AFTER deployments are running so you
+# can verify each policy with `kubectl exec` curl probes before the next one
+# lands. NetworkPolicy only works if the CNI plugin enforces it (Calico,
+# Cilium, Weave Net) — flannel ignores them silently.
+#
+# The model:
+#   ingress → web, admin (public HTTP/HTTPS via ingress-nginx)
+#   web/admin → api (egress to api Service)
+#   api/worker → postgres, redis, S3, SMTP, Stripe, generic DNS
+#   nothing else
+---
+# Default deny-all ingress + egress for the namespace.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: offisdesign
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+# Allow DNS egress for every pod (needed for any external call to resolve).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: offisdesign
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels: { k8s-app: kube-dns }
+      ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+---
+# Ingress controller → web/admin.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ingress-to-web-admin
+  namespace: offisdesign
+spec:
+  podSelector:
+    matchExpressions:
+      - { key: app, operator: In, values: [offis-web, offis-admin] }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        # Adjust to match your ingress controller's namespace/labels.
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: ingress-nginx }
+      ports:
+        - { protocol: TCP, port: 3000 }
+        - { protocol: TCP, port: 3001 }
+---
+# Web/Admin → API.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: web-admin-to-api
+  namespace: offisdesign
+spec:
+  podSelector:
+    matchLabels: { app: offis-api }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - { key: app, operator: In, values: [offis-web, offis-admin] }
+      ports:
+        - { protocol: TCP, port: 4000 }
+---
+# API/Worker egress to external services (Postgres, Redis, SMTP, Stripe, S3).
+# Network egress is allowed by CIDR — substitute your provider's IP ranges or
+# attach an egress proxy with a stricter allowlist.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: api-worker-egress
+  namespace: offisdesign
+spec:
+  podSelector:
+    matchExpressions:
+      - { key: app, operator: In, values: [offis-api, offis-worker] }
+  policyTypes: [Egress]
+  egress:
+    # Internet egress for managed Postgres/Redis/S3/SMTP/Stripe. Tighten by
+    # listing specific CIDRs once you know your providers' ranges.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except: [169.254.0.0/16] # block link-local (IMDS)
+      ports:
+        - { protocol: TCP, port: 443 }
+        - { protocol: TCP, port: 5432 }
+        - { protocol: TCP, port: 6379 }
+        - { protocol: TCP, port: 6380 }
+        - { protocol: TCP, port: 587 }
+        - { protocol: TCP, port: 465 }

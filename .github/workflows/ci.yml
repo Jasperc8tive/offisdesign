@@ -10,6 +10,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Turbo cache is restored in every job that runs a turbo task so unchanged
+# packages can skip work. Per-commit cache key with a prefix-only restore
+# means PR runs land warm on top of main's last cache.
 jobs:
   install:
     name: Install
@@ -23,6 +26,14 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+      # `--frozen-lockfile` is also the lockfile-drift gate: if pnpm-lock.yaml
+      # disagrees with package.json this step fails immediately.
       - run: pnpm install --frozen-lockfile
 
   lint:
@@ -38,6 +49,12 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
       - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
       - run: pnpm lint
@@ -55,6 +72,12 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
 
@@ -97,6 +120,12 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @offisdesign/database db:generate
       - run: pnpm --filter @offisdesign/database db:migrate:deploy
@@ -116,6 +145,12 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
       - run: pnpm install --frozen-lockfile
       - run: pnpm storybook:build
 
@@ -132,6 +167,12 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @offisdesign/database db:generate
       - run: pnpm build
@@ -152,11 +193,18 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @offisdesign/database db:generate
       - run: pnpm --filter @offisdesign/web build
+      # `pnpm dlx` runs the CLI without polluting the lockfile or mixing
+      # package managers inside the workspace. Previous npm-install pattern
+      # bypassed pnpm's hoisting and could resolve to a different package.
       - name: Run Lighthouse CI
         working-directory: apps/web
-        run: |
-          npm install --no-save @lhci/cli@0.14.x
-          npx lhci autorun --config=./lighthouserc.cjs
+        run: pnpm dlx @lhci/cli@0.14.x autorun --config=./lighthouserc.cjs

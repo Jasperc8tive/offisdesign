@@ -5,17 +5,20 @@ import { ThemeProvider } from '@offisdesign/ui';
 import { Toaster, toast } from 'sonner';
 import { QueryProvider } from './query.provider';
 import { AuthProvider } from './auth.provider';
+import { GlobalErrorBoundary } from '../../components/error-boundary';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <QueryProvider>
-      <ThemeProvider>
-        <AuthProvider>
-          {children}
-          <Toaster richColors position="top-right" />
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryProvider>
+    <GlobalErrorBoundary>
+      <QueryProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            {children}
+            <Toaster richColors position="top-right" />
+          </AuthProvider>
+        </ThemeProvider>
+      </QueryProvider>
+    </GlobalErrorBoundary>
   );
 }
 

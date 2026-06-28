@@ -1,0 +1,59 @@
+# VCS
+.git
+.github
+.gitignore
+.gitattributes
+
+# Docs (rebuilt artifacts only; source docs not needed in images)
+docs
+README.md
+CHANGELOG.md
+
+# Local env (never leak into image layers)
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Node / pnpm
+node_modules
+.pnpm-store
+
+# Build output
+dist
+build
+.next
+out
+storybook-static
+coverage
+.nyc_output
+*.tsbuildinfo
+
+# Turbo
+.turbo
+
+# Husky / lint-staged
+.husky/_
+
+# Editor / OS
+.idea
+.vscode
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Caches
+.cache
+.parcel-cache
+
+# Misc
+docker
+k8s
+scripts/backup.sh
+scripts/restore.sh

@@ -10,6 +10,12 @@
 #   postgres → private
 #   redis    → private
 #
+# Storage: This compose intentionally OMITS MinIO. Media is expected to live
+# on an external S3-compatible bucket (AWS, Cloudflare R2, Wasabi) configured
+# via STORAGE_DRIVER=s3 in .env.production. If you need a local S3 for an
+# on-prem deployment, copy the minio service block from docker-compose.yml,
+# expose a persistent volume, and set STORAGE_S3_ENDPOINT accordingly.
+#
 # Secrets are sourced from the host's environment — *not* committed.
 # Copy .env.production.example into your secrets manager and provide it
 # via `env_file` or platform-native secret injection.

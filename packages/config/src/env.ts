@@ -117,6 +117,59 @@ export const apiEnvShape = {
 
 export type ApiEnv = AppEnv<typeof apiEnvShape>;
 
+/**
+ * Conditional requirements that can't be expressed per-field:
+ *   - PAYMENT_PROVIDER=stripe ⇒ STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET
+ *   - STORAGE_DRIVER=s3      ⇒ S3_BUCKET + S3_REGION + S3_ACCESS_KEY_ID + S3_SECRET_ACCESS_KEY
+ *   - EMAIL_TRANSPORT=smtp   ⇒ SMTP_HOST + SMTP_PORT + SMTP_USER + SMTP_PASSWORD
+ *   - RATE_LIMIT_AUTH must be < RATE_LIMIT_DEFAULT
+ * These are checked at boot so a misconfigured deploy fails immediately
+ * rather than at the first customer transaction.
+ */
+function assertApiInvariants(env: ApiEnv): void {
+  const missing: string[] = [];
+
+  if (env.PAYMENT_PROVIDER === 'stripe') {
+    if (!env.STRIPE_SECRET_KEY)
+      missing.push('STRIPE_SECRET_KEY (required when PAYMENT_PROVIDER=stripe)');
+    if (!env.STRIPE_WEBHOOK_SECRET)
+      missing.push('STRIPE_WEBHOOK_SECRET (required when PAYMENT_PROVIDER=stripe)');
+  }
+
+  if (env.STORAGE_DRIVER === 's3') {
+    if (!env.S3_BUCKET) missing.push('S3_BUCKET (required when STORAGE_DRIVER=s3)');
+    if (!env.S3_REGION) missing.push('S3_REGION (required when STORAGE_DRIVER=s3)');
+    if (!env.S3_ACCESS_KEY_ID) missing.push('S3_ACCESS_KEY_ID (required when STORAGE_DRIVER=s3)');
+    if (!env.S3_SECRET_ACCESS_KEY)
+      missing.push('S3_SECRET_ACCESS_KEY (required when STORAGE_DRIVER=s3)');
+  }
+
+  if (env.EMAIL_TRANSPORT === 'smtp') {
+    if (!env.SMTP_HOST) missing.push('SMTP_HOST (required when EMAIL_TRANSPORT=smtp)');
+    if (!env.SMTP_PORT) missing.push('SMTP_PORT (required when EMAIL_TRANSPORT=smtp)');
+    if (!env.SMTP_USER) missing.push('SMTP_USER (required when EMAIL_TRANSPORT=smtp)');
+    if (!env.SMTP_PASSWORD) missing.push('SMTP_PASSWORD (required when EMAIL_TRANSPORT=smtp)');
+  }
+
+  if (env.RATE_LIMIT_AUTH >= env.RATE_LIMIT_DEFAULT) {
+    missing.push(
+      `RATE_LIMIT_AUTH (${env.RATE_LIMIT_AUTH}) must be strictly less than RATE_LIMIT_DEFAULT (${env.RATE_LIMIT_DEFAULT})`,
+    );
+  }
+
+  if (env.NODE_ENV === 'production' && !env.COOKIE_DOMAIN) {
+    missing.push('COOKIE_DOMAIN (required in production so cross-subdomain auth works)');
+  }
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Invalid environment configuration:\n${missing.map((m) => `  ${m}`).join('\n')}`,
+    );
+  }
+}
+
 export function loadApiEnv(): ApiEnv {
-  return loadEnv(apiEnvShape);
+  const env = loadEnv(apiEnvShape);
+  assertApiInvariants(env);
+  return env;
 }
