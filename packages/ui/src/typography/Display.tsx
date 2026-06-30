@@ -1,12 +1,13 @@
 import * as React from 'react';
 import { cn } from '../internal/cn';
 
-type Size = 'sm' | 'md' | 'lg';
+type Size = 'sm' | 'md' | 'lg' | 'xl';
 
 const sizeMap: Record<Size, string> = {
   sm: 'text-display-sm',
   md: 'text-display-md',
   lg: 'text-display-lg',
+  xl: 'text-display-xl',
 };
 
 export interface DisplayProps extends React.HTMLAttributes<HTMLDivElement> {

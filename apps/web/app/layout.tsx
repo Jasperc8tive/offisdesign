@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Frank_Ruhl_Libre, Koulen, Quicksand } from 'next/font/google';
+import { Frank_Ruhl_Libre, Koulen, DM_Sans } from 'next/font/google';
 import { Providers } from '../lib/providers';
 import { JsonLd } from '../components/seo/json-ld';
 import { websiteJsonLd } from '../components/seo/schemas';
@@ -22,9 +22,9 @@ const display = Koulen({
   display: 'swap',
 });
 
-const body = Quicksand({
+const body = DM_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '500', '600'],
   variable: '--font-body',
   display: 'swap',
 });

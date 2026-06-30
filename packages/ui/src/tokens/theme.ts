@@ -51,6 +51,7 @@ export const cssVars = {
   '--muted': colors.muted,
   '--on-dark': colors.onDark,
   '--focus-ring': colors.focusRing,
+  '--surface': colors.surface,
 } as const;
 
 export type Theme = typeof theme;

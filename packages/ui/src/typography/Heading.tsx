@@ -4,7 +4,11 @@ import { cn } from '../internal/cn';
 type Level = 1 | 2 | 3 | 4;
 
 const sizeMap: Record<Level, string> = {
-  1: 'text-h1 md:text-h1 sm:text-display-sm',
+  // Mobile: h2-scale (42px) — avoids overflow on narrow screens.
+  // Desktop (md: 900px+): full h1 (60px).
+  // Previously: 'text-h1 md:text-h1 sm:text-display-sm' which caused the
+  // heading to SHRINK from 60px → 42px at the sm (600px) breakpoint.
+  1: 'text-h2 md:text-h1',
   2: 'text-h2',
   3: 'text-h3',
   4: 'text-h4',

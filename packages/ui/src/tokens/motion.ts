@@ -10,9 +10,17 @@ export const duration = {
 } as const;
 
 export const easing = {
-  standard: 'cubic-bezier(0.4, 0, 0.2, 1)', // ease-in-out
-  enter: 'cubic-bezier(0, 0, 0.2, 1)',
+  /**
+   * Primary luxury ease-out — unhurried, confident arrivals.
+   * Replaces Material's assertive ease-in-out for hover/transition states.
+   */
+  standard: 'cubic-bezier(0.25, 0, 0, 1)',
+  /** Element entering the screen — same gentle ease-out. */
+  enter: 'cubic-bezier(0.25, 0, 0, 1)',
+  /** Element leaving — kept snappy so departures feel decisive. */
   exit: 'cubic-bezier(0.4, 0, 1, 1)',
+  /** Slight overshoot for attention-directing moments (e.g. cart badge pop). */
+  emphasized: 'cubic-bezier(0.2, 0, 0, 1.2)',
 } as const;
 
 /** Scroll-reveal cascade (gentle slide-in + staggered children). */

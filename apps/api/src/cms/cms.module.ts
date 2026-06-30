@@ -7,8 +7,10 @@ import { BlogDomainService } from './blog.domain';
 import { CmsApplicationService } from './cms.app';
 import { AdminCmsController } from './admin-cms.controller';
 import { StorefrontCmsController } from './storefront-cms.controller';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
+  imports: [AuthModule],
   controllers: [AdminCmsController, StorefrontCmsController],
   providers: [
     PageRepository,

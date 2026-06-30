@@ -9,8 +9,8 @@ export const fontFamily = {
   heading: ['"Frank Ruhl Libre"', 'Georgia', 'serif'],
   /** Display / oversized labels. */
   display: ['Koulen', 'Impact', 'sans-serif'],
-  /** Body & UI — rounded sans. */
-  body: ['Quicksand', 'system-ui', 'sans-serif'],
+  /** Body & UI — clean geometric sans, premium and neutral. */
+  body: ['"DM Sans"', 'system-ui', 'sans-serif'],
 } as const;
 
 export const fontWeight = {

@@ -4,11 +4,11 @@
   "private": true,
   "type": "module",
   "sideEffects": false,
-  "main": "./src/index.ts",
+  "main": "./dist/index.js",
   "types": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./tailwind-preset": "./src/tailwind-preset.ts",
+    ".": "./dist/index.js",
+    "./tailwind-preset": "./dist/tailwind-preset.js",
     "./eslint-preset": "./src/eslint-preset.mjs",
     "./prettier-preset": "./src/prettier-preset.mjs"
   },

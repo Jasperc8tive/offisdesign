@@ -23,6 +23,7 @@ const preset: Partial<Config> = {
         secondary: 'var(--secondary)',
         accent: 'var(--accent)',
         background: 'var(--background)',
+        surface: 'var(--surface)',
         text: 'var(--text)',
         muted: 'var(--muted)',
         'on-dark': 'var(--on-dark)',
@@ -32,12 +33,15 @@ const preset: Partial<Config> = {
       fontFamily: {
         heading: ['var(--font-heading)', '"Frank Ruhl Libre"', 'Georgia', 'serif'],
         display: ['var(--font-display)', 'Koulen', 'Impact', 'sans-serif'],
-        body: ['var(--font-body)', 'Quicksand', 'system-ui', 'sans-serif'],
+        body: ['var(--font-body)', '"DM Sans"', 'system-ui', 'sans-serif'],
       },
       fontSize: {
-        'display-lg': ['60px', { lineHeight: '1.1' }],
-        'display-md': ['54px', { lineHeight: '1.1' }],
-        'display-sm': ['42px', { lineHeight: '1.1' }],
+        // Display scale (Koulen) — each step clearly above the heading scale below it.
+        'display-xl': ['80px', { lineHeight: '1.0' }], // single-word hero statements
+        'display-lg': ['72px', { lineHeight: '1.0' }], // primary hero display (was 60px)
+        'display-md': ['60px', { lineHeight: '1.05' }], // section display (was 54px)
+        'display-sm': ['46px', { lineHeight: '1.1' }], // subsection display (was 42px)
+        // Heading scale (Frank Ruhl Libre) — clearly subordinate to display above.
         h1: ['60px', { lineHeight: '1.1' }],
         h2: ['42px', { lineHeight: '1.2' }],
         h3: ['32px', { lineHeight: '1.2' }],
@@ -79,9 +83,10 @@ const preset: Partial<Config> = {
         slow: '400ms',
       },
       transitionTimingFunction: {
-        standard: 'cubic-bezier(0.4, 0, 0.2, 1)',
-        enter: 'cubic-bezier(0, 0, 0.2, 1)',
-        exit: 'cubic-bezier(0.4, 0, 1, 1)',
+        standard: 'cubic-bezier(0.25, 0, 0, 1)', // luxury ease-out (was Material ease-in-out)
+        enter: 'cubic-bezier(0.25, 0, 0, 1)', // gentle arrival
+        exit: 'cubic-bezier(0.4, 0, 1, 1)', // decisive departure — kept snappy
+        emphasized: 'cubic-bezier(0.2, 0, 0, 1.2)', // slight overshoot for emphasis moments
       },
       zIndex: {
         hide: '-1',

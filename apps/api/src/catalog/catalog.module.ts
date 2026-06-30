@@ -10,8 +10,10 @@ import { CategoryDomainService } from './category.domain';
 import { CatalogApplicationService } from './catalog.app';
 import { AdminCatalogController } from './admin-catalog.controller';
 import { StorefrontCatalogController } from './storefront-catalog.controller';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
+  imports: [AuthModule],
   controllers: [AdminCatalogController, StorefrontCatalogController],
   providers: [
     ProductRepository,

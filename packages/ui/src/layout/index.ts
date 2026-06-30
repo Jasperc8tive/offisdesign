@@ -7,3 +7,4 @@ export * from './Spacer';
 export * from './AspectRatio';
 export * from './VisuallyHidden';
 export * from './Divider';
+export * from './PageSection';

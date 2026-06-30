@@ -42,6 +42,11 @@ export const states = {
   muted: 'rgba(65, 12, 20, 0.66)',
   /** Foreground to use ON primary/secondary/accent fills. */
   onDark: '#FEFEFE',
+  /**
+   * Elevated surface — cards, panels, image placeholders on white.
+   * Secondary at 4% opacity: warm near-white, brand-tinted but not reddish.
+   */
+  surface: 'rgba(65, 12, 20, 0.04)',
 } as const;
 
 export const colors = { ...palette, ...states } as const;

@@ -4,9 +4,11 @@ import { EMAIL_ADAPTER } from './notifications.interface';
 import { NotificationsRepository } from './notifications.repository';
 import { NotificationsAppService } from './notifications.app';
 import { AdminNotificationsController } from './admin-notifications.controller';
+import { AuthModule } from '../auth/auth.module';
 
 @Global()
 @Module({
+  imports: [AuthModule],
   controllers: [AdminNotificationsController],
   providers: [
     LogEmailAdapter,

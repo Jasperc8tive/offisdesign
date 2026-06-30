@@ -21,6 +21,8 @@
   --muted: rgba(65, 12, 20, 0.66);
   --on-dark: #fefefe;
   --focus-ring: rgba(184, 31, 52, 0.45);
+  /* Elevated surface — cards / panels / image placeholders on white */
+  --surface: rgba(65, 12, 20, 0.04);
 
   /* shadcn/ui — HSL channels (no hsl() wrapper) */
   --shadcn-background: 0 0% 100%;
