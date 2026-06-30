@@ -12,4 +12,11 @@ export const apiConfig = {
    * useful for local dev without Stripe credentials.
    */
   stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '',
+  /**
+   * CDN host that serves product/editorial media by id. When unset (local dev,
+   * or before media is wired up at deploy time) the storefront renders brand
+   * placeholders instead of `<img>`s. Must also be allow-listed in
+   * next.config.mjs `images.remotePatterns`.
+   */
+  mediaHostname: process.env.NEXT_PUBLIC_MEDIA_HOSTNAME ?? '',
 } as const;

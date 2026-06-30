@@ -20,6 +20,7 @@ import {
   Text,
 } from '@offisdesign/ui';
 import { useVariantIndex, type VariantRef } from '../../../lib/hooks';
+import { Media } from '../../../components/media/media';
 import { useCart, toast } from '../../../lib/providers';
 import { ApiError } from '../../../lib/api/errors';
 
@@ -57,7 +58,9 @@ function CartLine({
             href={href}
             className="focus-visible:ring-primary block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           >
-            <AspectRatio ratio={1} className="bg-primary-subtle rounded-md" />
+            <AspectRatio ratio={1} className="bg-primary-subtle rounded-md">
+              <Media mediaId={product?.mediaId} alt={product?.name ?? ''} sizes="112px" />
+            </AspectRatio>
           </Link>
         ) : (
           <AspectRatio ratio={1} className="bg-primary-subtle rounded-md" />

@@ -59,6 +59,7 @@ export interface VariantRef {
   productId: string;
   name: string;
   slug: string;
+  mediaId?: string | null;
 }
 
 /**
@@ -79,8 +80,9 @@ export function useVariantIndex(options?: { enabled?: boolean }) {
   const index = useMemo(() => {
     const map = new Map<string, VariantRef>();
     for (const p of query.data?.data ?? []) {
+      const mediaId = p.media[0]?.mediaId ?? null;
       for (const v of p.variants ?? []) {
-        map.set(v.id, { productId: p.id, name: p.name, slug: p.slug });
+        map.set(v.id, { productId: p.id, name: p.name, slug: p.slug, mediaId });
       }
     }
     return map;

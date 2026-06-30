@@ -38,6 +38,7 @@ import { useReviewSummary } from '../../../../lib/hooks';
 import { JsonLd } from '../../../../components/seo/json-ld';
 import { breadcrumbJsonLd, productJsonLd } from '../../../../components/seo/schemas';
 import { Reveal } from '../../../../components/motion/reveal';
+import { resolveMediaUrl } from '../../../../lib/media/url';
 
 export function ProductDetail({ slug }: { slug: string }) {
   const router = useRouter();
@@ -147,7 +148,12 @@ export function ProductDetail({ slug }: { slug: string }) {
       <Breadcrumb items={breadcrumbs} />
 
       <Grid cols={2} gap={8}>
-        <Gallery images={data.media.map((m) => ({ id: m.id, alt: m.alt ?? data.name }))} />
+        <Gallery
+          images={data.media.map((m) => {
+            const src = resolveMediaUrl(m.mediaId);
+            return { id: m.id, alt: m.alt ?? data.name, ...(src ? { src } : {}) };
+          })}
+        />
 
         <Stack gap={4} className="md:sticky md:top-24 md:self-start">
           <Stack gap={3}>

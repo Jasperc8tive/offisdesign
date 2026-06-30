@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react';
 import { AspectRatio, Button, Display, Stack, Text } from '@offisdesign/ui';
 import { useCmsPage } from '../../lib/hooks';
 import { findBlock, type Block } from './cms-block';
+import { Media } from '../media/media';
 import { useAnalytics } from '../../lib/providers';
 
 interface StoryPayload {
@@ -14,6 +15,7 @@ interface StoryPayload {
   lead?: string;
   href?: string;
   cta?: string;
+  mediaId?: string;
 }
 
 const DEFAULT: StoryPayload = {
@@ -34,7 +36,13 @@ export function BrandStory() {
   return (
     <section className="py-10 md:py-14">
       <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-        <AspectRatio ratio={4 / 3} className="bg-primary-subtle rounded-lg lg:aspect-[5/4]" />
+        <AspectRatio ratio={4 / 3} className="bg-primary-subtle rounded-lg lg:aspect-[5/4]">
+          <Media
+            mediaId={story.mediaId}
+            alt={story.display ?? 'Offisdesign craft'}
+            sizes="(min-width: 1024px) 50vw, 100vw"
+          />
+        </AspectRatio>
         <Stack gap={4} justify="center">
           {story.eyebrow && (
             <Text size="sm" tone="primary" className="font-semibold uppercase tracking-[0.18em]">

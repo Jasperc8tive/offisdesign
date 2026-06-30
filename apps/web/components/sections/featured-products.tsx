@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { AspectRatio, Button, PriceTag, Skeleton, Stack, Text } from '@offisdesign/ui';
 import { useProducts } from '../../lib/hooks';
+import { Media } from '../media/media';
 import { SectionShell } from './section-shell';
 import { useAnalytics } from '../../lib/providers';
 
@@ -68,7 +69,12 @@ export function FeaturedProducts({
                   className="focus-visible:ring-primary group block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4"
                 >
                   <AspectRatio ratio={1} className="bg-primary-subtle rounded-md">
-                    <div className="duration-slow ease-standard h-full w-full transition-transform group-hover:scale-[1.03]" />
+                    <Media
+                      mediaId={p.media[0]?.mediaId}
+                      alt={p.name}
+                      sizes="(min-width: 900px) 25vw, 50vw"
+                      className="duration-slow ease-standard transition-transform group-hover:scale-[1.03]"
+                    />
                   </AspectRatio>
                   <Stack gap={1} className="mt-3">
                     <Text className="text-secondary group-hover:text-primary duration-base ease-standard font-semibold transition-colors">

@@ -33,6 +33,7 @@ export function RelatedProducts({ title, collection, excludeProductId }: Props) 
         name: p.name,
         fromAmount: variant?.priceAmount ?? null,
         currency: variant?.priceCurrency ?? 'GBP',
+        mediaId: p.media[0]?.mediaId ?? null,
         ...(variant?.compareAtAmount ? { compareAtAmount: variant.compareAtAmount } : {}),
       };
     });

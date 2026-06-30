@@ -15,6 +15,7 @@ import {
   Text,
 } from '@offisdesign/ui';
 import { Drawer } from './drawer';
+import { Media } from '../media/media';
 import { useVariantIndex } from '../../lib/hooks';
 import { useCart, toast } from '../../lib/providers';
 
@@ -60,7 +61,9 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                       onClick={onClose}
                       className="focus-visible:ring-primary block rounded-sm focus-visible:outline-none focus-visible:ring-2"
                     >
-                      <AspectRatio ratio={1} className="bg-primary-subtle rounded-sm" />
+                      <AspectRatio ratio={1} className="bg-primary-subtle rounded-sm">
+                        <Media mediaId={ref?.mediaId} alt={ref?.name ?? ''} sizes="80px" />
+                      </AspectRatio>
                     </Link>
                   ) : (
                     <AspectRatio ratio={1} className="bg-primary-subtle rounded-sm" />

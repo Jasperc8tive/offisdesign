@@ -15,6 +15,8 @@ import {
 } from '@offisdesign/ui';
 import { useCmsPage } from '../../lib/hooks';
 import { findBlock, str, type Block } from './cms-block';
+import { Media } from '../media/media';
+import { resolveMediaUrl } from '../../lib/media/url';
 import { useAnalytics } from '../../lib/providers';
 
 interface HeroPayload {
@@ -22,6 +24,7 @@ interface HeroPayload {
   display?: string;
   title?: string;
   lead?: string;
+  mediaId?: string;
   primaryCta?: { label: string; href: string };
   secondaryCta?: { label: string; href: string };
 }
@@ -138,14 +141,22 @@ export function Hero() {
           </Cluster>
         </Stack>
 
-        {/* Media — placeholder until photography is wired */}
+        {/* Media — real photography when configured, brand placeholder otherwise */}
         <div className="order-2">
           <AspectRatio ratio={4 / 5} className="bg-primary-subtle rounded-lg lg:aspect-[5/6]">
-            <div className="text-muted flex h-full w-full items-end p-5">
-              <Text size="caption" tone="muted" className="uppercase tracking-[0.18em]">
-                {str(fromCms, 'mediaAlt') ?? 'Made in Yorkshire'}
-              </Text>
-            </div>
+            <Media
+              mediaId={hero.mediaId}
+              alt={hero.display ?? 'Offisdesign'}
+              priority
+              sizes="(min-width: 1024px) 50vw, 100vw"
+            />
+            {!resolveMediaUrl(hero.mediaId) && (
+              <div className="text-muted flex h-full w-full items-end p-5">
+                <Text size="caption" tone="muted" className="uppercase tracking-[0.18em]">
+                  {str(fromCms, 'mediaAlt') ?? 'Made in Yorkshire'}
+                </Text>
+              </div>
+            )}
           </AspectRatio>
         </div>
       </div>

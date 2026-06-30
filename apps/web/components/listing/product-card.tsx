@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { AspectRatio, PriceTag, Stack, Text } from '@offisdesign/ui';
+import { Media } from '../media/media';
 import { useAnalytics } from '../../lib/providers';
 
 export interface ProductCardData {
@@ -11,6 +12,8 @@ export interface ProductCardData {
   fromAmount: number | null;
   currency: string;
   compareAtAmount?: number | null;
+  /** First product image id, when the source carries one. */
+  mediaId?: string | null;
 }
 
 interface Props {
@@ -40,7 +43,12 @@ export function ProductCard({ product, location }: Props) {
       className="focus-visible:ring-primary group block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4"
     >
       <AspectRatio ratio={1} className="bg-primary-subtle rounded-md">
-        <div className="duration-slow ease-standard h-full w-full transition-transform group-hover:scale-[1.03]" />
+        <Media
+          mediaId={product.mediaId}
+          alt={product.name}
+          sizes="(min-width: 1024px) 25vw, (min-width: 600px) 33vw, 50vw"
+          className="duration-slow ease-standard transition-transform group-hover:scale-[1.03]"
+        />
         {onSale && (
           <span className="bg-primary text-on-dark font-body text-caption absolute left-3 top-3 rounded-full px-2.5 py-0.5 font-semibold uppercase tracking-wide">
             Sale

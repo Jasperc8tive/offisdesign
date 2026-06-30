@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { AspectRatio, Badge, Skeleton, Stack, Text } from '@offisdesign/ui';
 import { useBlogPosts } from '../../lib/hooks';
+import { Media } from '../media/media';
 import { SectionShell } from './section-shell';
 import { useAnalytics } from '../../lib/providers';
 
@@ -38,7 +39,12 @@ export function BlogHighlights() {
                 className="focus-visible:ring-primary group block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4"
               >
                 <AspectRatio ratio={16 / 9} className="bg-primary-subtle rounded-md">
-                  <div className="duration-slow ease-standard h-full w-full transition-transform group-hover:scale-[1.03]" />
+                  <Media
+                    mediaId={p.coverMediaId}
+                    alt={p.title}
+                    sizes="(min-width: 600px) 33vw, 100vw"
+                    className="duration-slow ease-standard transition-transform group-hover:scale-[1.03]"
+                  />
                 </AspectRatio>
                 <Stack gap={2} className="mt-3">
                   {p.tags[0] && <Badge variant="muted">{p.tags[0]}</Badge>}
