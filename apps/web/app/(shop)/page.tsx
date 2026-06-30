@@ -9,6 +9,7 @@ import { BrandStory } from '../../components/sections/brand-story';
 import { PromoBanner } from '../../components/sections/promo-banner';
 import { BlogHighlights } from '../../components/sections/blog-highlights';
 import { Newsletter } from '../../components/sections/newsletter';
+import { Reveal } from '../../components/motion/reveal';
 import { JsonLd } from '../../components/seo/json-ld';
 import { homepageOrgJsonLd } from '../../components/seo/schemas';
 
@@ -39,16 +40,40 @@ export default function HomePage() {
         full-bleed promo and newsletter bands — rather than one uniform gap.
       */}
       <Hero />
-      <TrustIndicators />
-      <FeaturedCategories />
-      <FeaturedCollections />
-      <FeaturedProducts title="New arrivals" sort="recent" location="home_new" />
-      <FeaturedProducts title="Workspace edits" collection="workspace" location="home_workspace" />
-      <BrandStory />
-      <PromoBanner />
-      <TestimonialsStrip />
-      <BlogHighlights />
-      <Newsletter />
+      <Reveal>
+        <TrustIndicators />
+      </Reveal>
+      <Reveal>
+        <FeaturedCategories />
+      </Reveal>
+      <Reveal>
+        <FeaturedCollections />
+      </Reveal>
+      <Reveal>
+        <FeaturedProducts title="New arrivals" sort="recent" location="home_new" />
+      </Reveal>
+      <Reveal>
+        <FeaturedProducts
+          title="Workspace edits"
+          collection="workspace"
+          location="home_workspace"
+        />
+      </Reveal>
+      <Reveal>
+        <BrandStory />
+      </Reveal>
+      <Reveal>
+        <PromoBanner />
+      </Reveal>
+      <Reveal>
+        <TestimonialsStrip />
+      </Reveal>
+      <Reveal>
+        <BlogHighlights />
+      </Reveal>
+      <Reveal>
+        <Newsletter />
+      </Reveal>
     </>
   );
 }

@@ -37,6 +37,7 @@ import { InventoryBadge } from '../../../../components/pdp/inventory-badge';
 import { useReviewSummary } from '../../../../lib/hooks';
 import { JsonLd } from '../../../../components/seo/json-ld';
 import { breadcrumbJsonLd, productJsonLd } from '../../../../components/seo/schemas';
+import { Reveal } from '../../../../components/motion/reveal';
 
 export function ProductDetail({ slug }: { slug: string }) {
   const router = useRouter();
@@ -249,20 +250,22 @@ export function ProductDetail({ slug }: { slug: string }) {
 
       {/* Two focused recommendation strips (curated + algorithmic) plus the
           personal recently-viewed row — down from five near-identical grids. */}
-      <Stack gap={12}>
-        <ProductRecommendations
-          title="Pairs well with"
-          kinds={['CROSS_SELL', 'UP_SELL', 'RELATED']}
-          links={data.linksFrom}
-          location="pdp_recommendations"
-        />
-        <RelatedProducts
-          title="You may also like"
-          {...(focalCollection ? { collection: focalCollection } : {})}
-          excludeProductId={data.id}
-        />
-        <RecentlyViewedStrip excludeProductId={data.id} />
-      </Stack>
+      <Reveal>
+        <Stack gap={12}>
+          <ProductRecommendations
+            title="Pairs well with"
+            kinds={['CROSS_SELL', 'UP_SELL', 'RELATED']}
+            links={data.linksFrom}
+            location="pdp_recommendations"
+          />
+          <RelatedProducts
+            title="You may also like"
+            {...(focalCollection ? { collection: focalCollection } : {})}
+            excludeProductId={data.id}
+          />
+          <RecentlyViewedStrip excludeProductId={data.id} />
+        </Stack>
+      </Reveal>
 
       {/* Mobile sticky add-to-bag — appears once the primary button is scrolled
           past. Hidden from md up, where the buy column is sticky beside the

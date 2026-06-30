@@ -1,16 +1,22 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { ChevronDown, Menu, Search as SearchIcon, ShoppingBag, User } from 'lucide-react';
 import { Cluster, Container, Icon, NavLink } from '@offisdesign/ui';
 import { cn } from '@offisdesign/utils';
-import { CartDrawer } from './cart-drawer';
 import { MegaMenu, type MegaMenuFeatured } from './mega-menu';
-import { MobileNav } from './mobile-nav';
-import { SearchOverlay } from './search-overlay';
 import { useNavigation } from '../../lib/hooks';
 import { useAnalytics, useAuth, useCart } from '../../lib/providers';
+
+// Overlays are only needed on interaction, so they're code-split and mounted on
+// open — keeping their JS out of every page's initial bundle.
+const CartDrawer = dynamic(() => import('./cart-drawer').then((m) => m.CartDrawer), { ssr: false });
+const MobileNav = dynamic(() => import('./mobile-nav').then((m) => m.MobileNav), { ssr: false });
+const SearchOverlay = dynamic(() => import('./search-overlay').then((m) => m.SearchOverlay), {
+  ssr: false,
+});
 
 interface NavItem {
   label: string;
@@ -235,9 +241,9 @@ export function Header() {
         />
       )}
 
-      <MobileNav open={mobileOpen} onClose={() => setMobileOpen(false)} />
-      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+      {mobileOpen && <MobileNav open onClose={() => setMobileOpen(false)} />}
+      {searchOpen && <SearchOverlay open onClose={() => setSearchOpen(false)} />}
+      {cartOpen && <CartDrawer open onClose={() => setCartOpen(false)} />}
     </>
   );
 }

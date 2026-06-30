@@ -21,10 +21,13 @@ interface Props {
   onMouseLeave: () => void;
 }
 
+const PANEL_CLASS =
+  'border-border bg-background absolute left-0 right-0 top-full border-b shadow-xl';
+
 export function MegaMenu({ label, items, featured, onClose, onMouseEnter, onMouseLeave }: Props) {
   return (
     <div
-      className="border-border bg-background absolute left-0 right-0 top-full border-b shadow-xl"
+      className={`${PANEL_CLASS} animate-mega-in`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
@@ -78,7 +81,6 @@ export function MegaMenu({ label, items, featured, onClose, onMouseEnter, onMous
             </div>
           </div>
         ) : (
-          /* No featured callout — show links in a compact grid */
           <div>
             <p className="text-muted font-body text-caption mb-5 uppercase tracking-widest">
               {label}
