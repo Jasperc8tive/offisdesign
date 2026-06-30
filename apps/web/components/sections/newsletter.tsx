@@ -1,7 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Alert, Button, Container, Display, FormField, Input, Stack, Text } from '@offisdesign/ui';
+import {
+  Alert,
+  Button,
+  Container,
+  Display,
+  FormField,
+  Input,
+  PageSection,
+  Stack,
+  Text,
+} from '@offisdesign/ui';
 import { useSubscribeNewsletter } from '../../lib/hooks';
 import { useAnalytics } from '../../lib/providers';
 import { ApiError } from '../../lib/api/errors';
@@ -45,13 +55,15 @@ export function Newsletter({
   }
 
   return (
-    <section className="bg-primary-subtle">
-      <Container className="py-12">
-        <Stack gap={4} align="center" className="text-center">
-          <Display size="sm">{title}</Display>
-          <Text tone="muted" className="max-w-prose">
-            {lead}
-          </Text>
+    <PageSection variant="bleed" padding="default" className="bg-surface">
+      <Container>
+        <Stack gap={6} align="center" className="text-center">
+          <Stack gap={2} align="center">
+            <Display size="sm">{title}</Display>
+            <Text tone="muted" className="max-w-prose">
+              {lead}
+            </Text>
+          </Stack>
           {done ? (
             <Alert variant="success" title="Thanks for subscribing">
               Look out for our next dispatch.
@@ -60,19 +72,24 @@ export function Newsletter({
             <form onSubmit={onSubmit} className="w-full max-w-md">
               <Stack gap={3}>
                 {error && <Alert variant="error">{error}</Alert>}
-                <FormField label="Email" htmlFor="nl-email" required>
-                  <Input
-                    id="nl-email"
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </FormField>
-                <Button type="submit" loading={subscribe.isPending} fullWidth>
-                  Subscribe
-                </Button>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                  <div className="flex-1 text-left">
+                    <FormField label="Email" htmlFor="nl-email" required>
+                      <Input
+                        id="nl-email"
+                        type="email"
+                        autoComplete="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </FormField>
+                  </div>
+                  <Button type="submit" size="lg" loading={subscribe.isPending} className="sm:mt-7">
+                    Subscribe
+                  </Button>
+                </div>
                 <Text size="sm" tone="muted">
                   We&rsquo;ll never share your email.
                 </Text>
@@ -81,6 +98,6 @@ export function Newsletter({
           )}
         </Stack>
       </Container>
-    </section>
+    </PageSection>
   );
 }

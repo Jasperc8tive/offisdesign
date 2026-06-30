@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Full-bleed safety: sections that break out to 100vw (PageSection variant
+ * "bleed") can be a few pixels wider than the content area because 100vw
+ * includes the vertical scrollbar gutter. `clip` removes that overflow without
+ * creating a scroll container, so `position: sticky` (the header) keeps working
+ * — unlike `overflow: hidden`, which would break it.
+ */
+body {
+  overflow-x: clip;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

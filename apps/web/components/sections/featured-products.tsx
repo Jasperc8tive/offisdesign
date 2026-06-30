@@ -2,20 +2,9 @@
 
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import {
-  AspectRatio,
-  Button,
-  Card,
-  CardBody,
-  Cluster,
-  Grid,
-  Heading,
-  PriceTag,
-  Skeleton,
-  Stack,
-  Text,
-} from '@offisdesign/ui';
+import { AspectRatio, Button, PriceTag, Skeleton, Stack, Text } from '@offisdesign/ui';
 import { useProducts } from '../../lib/hooks';
+import { SectionShell } from './section-shell';
 import { useAnalytics } from '../../lib/providers';
 
 export function FeaturedProducts({
@@ -39,30 +28,29 @@ export function FeaturedProducts({
   if (isError) return null;
   if (!isLoading && (!data || data.data.length === 0)) return null;
 
+  const seeAllHref = collection
+    ? `/search?collection=${encodeURIComponent(collection)}`
+    : '/search';
+
   return (
-    <Stack gap={4}>
-      <Cluster justify="between" align="end">
-        <Heading level={2}>{title}</Heading>
-        <Link
-          href={collection ? `/search?collection=${encodeURIComponent(collection)}` : '/search'}
-        >
+    <SectionShell
+      title={title}
+      action={
+        <Link href={seeAllHref}>
           <Button variant="link" trailingIcon={<ArrowRight width={16} height={16} aria-hidden />}>
             See all
           </Button>
         </Link>
-      </Cluster>
-      <Grid cols={4} gap={4}>
+      }
+    >
+      <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4 md:gap-6">
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i}>
+              <Stack gap={3} key={i}>
                 <Skeleton className="aspect-square w-full" rounded="md" />
-                <CardBody>
-                  <Stack gap={2}>
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </Stack>
-                </CardBody>
-              </Card>
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </Stack>
             ))
           : data!.data.map((p) => {
               const variant = p.variants[0];
@@ -77,28 +65,29 @@ export function FeaturedProducts({
                       location,
                     })
                   }
+                  className="focus-visible:ring-primary group block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4"
                 >
-                  <Card interactive className="h-full">
-                    <AspectRatio ratio={1} className="bg-primary-subtle rounded-t-md" />
-                    <CardBody>
-                      <Stack gap={1}>
-                        <Text className="text-secondary font-semibold">{p.name}</Text>
-                        {variant && (
-                          <PriceTag
-                            amount={variant.priceAmount}
-                            {...(variant.compareAtAmount
-                              ? { originalAmount: variant.compareAtAmount }
-                              : {})}
-                            size="sm"
-                          />
-                        )}
-                      </Stack>
-                    </CardBody>
-                  </Card>
+                  <AspectRatio ratio={1} className="bg-primary-subtle rounded-md">
+                    <div className="duration-slow ease-standard h-full w-full transition-transform group-hover:scale-[1.03]" />
+                  </AspectRatio>
+                  <Stack gap={1} className="mt-3">
+                    <Text className="text-secondary group-hover:text-primary duration-base ease-standard font-semibold transition-colors">
+                      {p.name}
+                    </Text>
+                    {variant && (
+                      <PriceTag
+                        amount={variant.priceAmount}
+                        {...(variant.compareAtAmount
+                          ? { originalAmount: variant.compareAtAmount }
+                          : {})}
+                        size="sm"
+                      />
+                    )}
+                  </Stack>
                 </Link>
               );
             })}
-      </Grid>
-    </Stack>
+      </div>
+    </SectionShell>
   );
 }

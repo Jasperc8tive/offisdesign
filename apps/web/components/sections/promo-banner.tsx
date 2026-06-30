@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Button, Container, Display, Stack, Text } from '@offisdesign/ui';
+import { Button, Container, Display, PageSection, Stack, Text } from '@offisdesign/ui';
 import { useCmsPage } from '../../lib/hooks';
 import { findBlock, type Block } from './cms-block';
 import { useAnalytics } from '../../lib/providers';
@@ -30,36 +30,40 @@ export function PromoBanner() {
   if (!banner.title && !banner.body) return null;
 
   return (
-    <section className="bg-secondary text-on-dark">
-      <Container className="py-12">
-        <Stack gap={3} align="center" className="text-center">
+    <PageSection variant="bleed" padding="spacious" className="bg-secondary text-on-dark">
+      <Container>
+        <Stack gap={4} align="center" className="text-center">
           {banner.eyebrow && (
-            <Text size="sm" tone="inverse" className="uppercase tracking-wide">
+            <Text size="sm" tone="inverse" className="font-semibold uppercase tracking-[0.18em]">
               {banner.eyebrow}
             </Text>
           )}
-          {banner.title && <Display size="md">{banner.title}</Display>}
+          {banner.title && <Display size="lg">{banner.title}</Display>}
           {banner.body && (
-            <Text tone="inverse" className="max-w-prose">
+            <Text tone="inverse" className="max-w-prose opacity-90">
               {banner.body}
             </Text>
           )}
           {banner.href && banner.cta && (
-            <Link
-              href={banner.href}
-              onClick={() =>
-                track('cta_click', {
-                  id: 'promo-banner',
-                  location: 'promo_banner',
-                  href: banner.href ?? '',
-                })
-              }
-            >
-              <Button variant="primary">{banner.cta}</Button>
-            </Link>
+            <div className="pt-2">
+              <Link
+                href={banner.href}
+                onClick={() =>
+                  track('cta_click', {
+                    id: 'promo-banner',
+                    location: 'promo_banner',
+                    href: banner.href ?? '',
+                  })
+                }
+              >
+                <Button variant="primary" size="lg">
+                  {banner.cta}
+                </Button>
+              </Link>
+            </div>
           )}
         </Stack>
       </Container>
-    </section>
+    </PageSection>
   );
 }

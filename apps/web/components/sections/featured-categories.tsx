@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { AspectRatio, Card, CardFooter, Grid, Skeleton, Stack, Text } from '@offisdesign/ui';
+import { AspectRatio, Skeleton, Stack, Text } from '@offisdesign/ui';
 import { useCategories } from '../../lib/hooks';
 import { SectionShell } from './section-shell';
 import { useAnalytics } from '../../lib/providers';
@@ -15,16 +15,18 @@ export function FeaturedCategories() {
   if (!isLoading && top.length === 0) return null;
 
   return (
-    <SectionShell eyebrow="Shop by room" title="Spaces for every part of home and work.">
-      <Grid cols={4} gap={4}>
+    <SectionShell
+      id="categories"
+      eyebrow="Shop by room"
+      title="Spaces for every part of home and work."
+    >
+      <div className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-4 md:gap-6">
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i}>
+              <Stack gap={3} key={i}>
                 <Skeleton className="aspect-square w-full" rounded="md" />
-                <CardFooter className="border-t-0 pt-4">
-                  <Skeleton className="h-4 w-1/2" />
-                </CardFooter>
-              </Card>
+                <Skeleton className="h-4 w-1/2" />
+              </Stack>
             ))
           : top.map((c) => (
               <Link
@@ -37,18 +39,17 @@ export function FeaturedCategories() {
                     location: 'home_categories',
                   })
                 }
+                className="focus-visible:ring-primary group block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4"
               >
-                <Card interactive className="h-full">
-                  <AspectRatio ratio={1} className="bg-primary-subtle rounded-t-md" />
-                  <CardFooter className="border-t-0 pt-4">
-                    <Stack gap={0}>
-                      <Text className="text-secondary font-semibold">{c.name}</Text>
-                    </Stack>
-                  </CardFooter>
-                </Card>
+                <AspectRatio ratio={1} className="bg-primary-subtle rounded-md">
+                  <div className="duration-slow ease-standard h-full w-full transition-transform group-hover:scale-[1.03]" />
+                </AspectRatio>
+                <Text className="text-secondary group-hover:text-primary duration-base ease-standard mt-3 font-semibold transition-colors">
+                  {c.name}
+                </Text>
               </Link>
             ))}
-      </Grid>
+      </div>
     </SectionShell>
   );
 }

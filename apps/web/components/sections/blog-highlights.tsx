@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { AspectRatio, Badge, Card, CardBody, Grid, Skeleton, Stack, Text } from '@offisdesign/ui';
+import { AspectRatio, Badge, Skeleton, Stack, Text } from '@offisdesign/ui';
 import { useBlogPosts } from '../../lib/hooks';
 import { SectionShell } from './section-shell';
 import { useAnalytics } from '../../lib/providers';
@@ -14,19 +14,15 @@ export function BlogHighlights() {
   if (!isLoading && (!data || data.data.length === 0)) return null;
 
   return (
-    <SectionShell eyebrow="Journal" title="Latest thinking.">
-      <Grid cols={3} gap={4}>
+    <SectionShell id="journal" eyebrow="Journal" title="Latest thinking.">
+      <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 sm:gap-6">
         {isLoading
           ? Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i}>
+              <Stack gap={3} key={i}>
                 <Skeleton className="aspect-[16/9] w-full" rounded="md" />
-                <CardBody>
-                  <Stack gap={2}>
-                    <Skeleton className="h-4 w-1/4" />
-                    <Skeleton className="h-4 w-3/4" />
-                  </Stack>
-                </CardBody>
-              </Card>
+                <Skeleton className="h-4 w-1/4" />
+                <Skeleton className="h-4 w-3/4" />
+              </Stack>
             ))
           : data!.data.map((p) => (
               <Link
@@ -39,24 +35,25 @@ export function BlogHighlights() {
                     href: `/journal/${p.slug}`,
                   })
                 }
+                className="focus-visible:ring-primary group block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4"
               >
-                <Card interactive className="h-full">
-                  <AspectRatio ratio={16 / 9} className="bg-primary-subtle rounded-t-md" />
-                  <CardBody>
-                    <Stack gap={1}>
-                      {p.tags[0] && <Badge variant="muted">{p.tags[0]}</Badge>}
-                      <Text className="text-secondary font-semibold">{p.title}</Text>
-                      {p.excerpt && (
-                        <Text size="sm" tone="muted">
-                          {p.excerpt}
-                        </Text>
-                      )}
-                    </Stack>
-                  </CardBody>
-                </Card>
+                <AspectRatio ratio={16 / 9} className="bg-primary-subtle rounded-md">
+                  <div className="duration-slow ease-standard h-full w-full transition-transform group-hover:scale-[1.03]" />
+                </AspectRatio>
+                <Stack gap={2} className="mt-3">
+                  {p.tags[0] && <Badge variant="muted">{p.tags[0]}</Badge>}
+                  <Text className="text-secondary group-hover:text-primary duration-base ease-standard font-semibold transition-colors">
+                    {p.title}
+                  </Text>
+                  {p.excerpt && (
+                    <Text size="sm" tone="muted">
+                      {p.excerpt}
+                    </Text>
+                  )}
+                </Stack>
               </Link>
             ))}
-      </Grid>
+      </div>
     </SectionShell>
   );
 }

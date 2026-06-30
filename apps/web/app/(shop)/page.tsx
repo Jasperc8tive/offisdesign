@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Stack } from '@offisdesign/ui';
 import { Hero } from '../../components/sections/hero';
 import { FeaturedCategories } from '../../components/sections/featured-categories';
 import { FeaturedCollections } from '../../components/sections/featured-collections';
@@ -34,23 +33,22 @@ export default function HomePage() {
   return (
     <>
       <JsonLd payload={homepageOrgJsonLd()} />
-      <Stack gap={16}>
-        <Hero />
-        <TrustIndicators />
-        <FeaturedCategories />
-        <FeaturedCollections />
-        <FeaturedProducts title="New arrivals" sort="recent" location="home_new" />
-        <FeaturedProducts
-          title="Workspace edits"
-          collection="workspace"
-          location="home_workspace"
-        />
-        <BrandStory />
-        <PromoBanner />
-        <TestimonialsStrip />
-        <BlogHighlights />
-        <Newsletter />
-      </Stack>
+      {/*
+        No outer Stack: each section owns its own vertical rhythm so the page
+        reads as an editorial sequence — contained content punctuated by the
+        full-bleed promo and newsletter bands — rather than one uniform gap.
+      */}
+      <Hero />
+      <TrustIndicators />
+      <FeaturedCategories />
+      <FeaturedCollections />
+      <FeaturedProducts title="New arrivals" sort="recent" location="home_new" />
+      <FeaturedProducts title="Workspace edits" collection="workspace" location="home_workspace" />
+      <BrandStory />
+      <PromoBanner />
+      <TestimonialsStrip />
+      <BlogHighlights />
+      <Newsletter />
     </>
   );
 }

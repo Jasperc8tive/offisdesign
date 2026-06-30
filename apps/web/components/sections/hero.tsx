@@ -1,15 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Truck } from 'lucide-react';
 import {
   AspectRatio,
-  Badge,
   Button,
   Cluster,
   Display,
-  Grid,
   Heading,
+  Icon,
   Skeleton,
   Stack,
   Text,
@@ -49,67 +48,107 @@ export function Hero() {
 
   if (isLoading && !data) {
     return (
-      <Grid cols={2} gap={8}>
-        <Stack gap={3}>
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-12 w-3/4" />
-          <Skeleton className="h-6 w-1/2" />
-          <Skeleton className="h-20 w-full" />
-        </Stack>
-        <Skeleton className="aspect-[5/4] w-full" rounded="md" />
-      </Grid>
+      <section className="pb-12 pt-4 md:pb-20 md:pt-8">
+        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+          <Stack gap={4}>
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-16 w-3/4" />
+            <Skeleton className="h-8 w-1/2" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-11 w-48" />
+          </Stack>
+          <Skeleton className="aspect-[4/5] w-full lg:aspect-[5/6]" rounded="md" />
+        </div>
+      </section>
     );
   }
 
   return (
-    <Grid cols={2} gap={8}>
-      <Stack gap={4} justify="center">
-        {hero.eyebrow && <Badge variant="muted">{hero.eyebrow}</Badge>}
-        {hero.display && <Display size="lg">{hero.display}</Display>}
-        {hero.title && <Heading level={1}>{hero.title}</Heading>}
-        {hero.lead && (
-          <Text tone="muted" className="max-w-prose">
-            {hero.lead}
-          </Text>
-        )}
-        <Cluster gap={3}>
-          {hero.primaryCta && (
-            <Link
-              href={hero.primaryCta.href}
-              onClick={() =>
-                track('cta_click', {
-                  id: 'hero-primary',
-                  location: 'hero',
-                  href: hero.primaryCta?.href ?? '',
-                })
-              }
-            >
-              <Button trailingIcon={<ArrowRight width={16} height={16} aria-hidden />}>
-                {hero.primaryCta.label}
-              </Button>
-            </Link>
+    <section className="pb-12 pt-4 md:pb-20 md:pt-8">
+      <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+        {/* Copy */}
+        <Stack gap={4} className="order-1">
+          {hero.eyebrow && (
+            <Text size="sm" tone="primary" className="font-semibold uppercase tracking-[0.18em]">
+              {hero.eyebrow}
+            </Text>
           )}
-          {hero.secondaryCta && (
-            <Link
-              href={hero.secondaryCta.href}
-              onClick={() =>
-                track('cta_click', {
-                  id: 'hero-secondary',
-                  location: 'hero',
-                  href: hero.secondaryCta?.href ?? '',
-                })
-              }
-            >
-              <Button variant="outline">{hero.secondaryCta.label}</Button>
-            </Link>
+          {hero.display && (
+            <Display size="xl" className="leading-[0.95]">
+              {hero.display}
+            </Display>
           )}
-        </Cluster>
-      </Stack>
-      <AspectRatio ratio={5 / 4} className="bg-primary-subtle rounded-md">
-        <div className="text-secondary flex h-full w-full items-center justify-center">
-          <Text tone="muted">{str(fromCms, 'mediaAlt') ?? 'Hero artwork'}</Text>
+          {hero.title && (
+            <Heading level={2} className="text-secondary max-w-[18ch] font-normal">
+              {hero.title}
+            </Heading>
+          )}
+          {hero.lead && (
+            <Text tone="muted" className="max-w-prose">
+              {hero.lead}
+            </Text>
+          )}
+          <Cluster gap={4} align="center" className="pt-1">
+            {hero.primaryCta && (
+              <Link
+                href={hero.primaryCta.href}
+                onClick={() =>
+                  track('cta_click', {
+                    id: 'hero-primary',
+                    location: 'hero',
+                    href: hero.primaryCta?.href ?? '',
+                  })
+                }
+              >
+                <Button size="lg" trailingIcon={<ArrowRight width={16} height={16} aria-hidden />}>
+                  {hero.primaryCta.label}
+                </Button>
+              </Link>
+            )}
+            {hero.secondaryCta && (
+              <Link
+                href={hero.secondaryCta.href}
+                onClick={() =>
+                  track('cta_click', {
+                    id: 'hero-secondary',
+                    location: 'hero',
+                    href: hero.secondaryCta?.href ?? '',
+                  })
+                }
+              >
+                <Button
+                  variant="link"
+                  trailingIcon={<ArrowRight width={16} height={16} aria-hidden />}
+                >
+                  {hero.secondaryCta.label}
+                </Button>
+              </Link>
+            )}
+          </Cluster>
+          {/* Trust microcopy — quiet reassurance under the fold-line */}
+          <Cluster gap={6} className="text-muted pt-3">
+            <span className="font-body text-body-sm inline-flex items-center gap-2">
+              <Icon icon={Truck} size="sm" decorative className="text-primary" />
+              Free UK delivery over £500
+            </span>
+            <span className="font-body text-body-sm inline-flex items-center gap-2">
+              <Icon icon={ShieldCheck} size="sm" decorative className="text-primary" />
+              Ten-year warranty
+            </span>
+          </Cluster>
+        </Stack>
+
+        {/* Media — placeholder until photography is wired */}
+        <div className="order-2">
+          <AspectRatio ratio={4 / 5} className="bg-primary-subtle rounded-lg lg:aspect-[5/6]">
+            <div className="text-muted flex h-full w-full items-end p-5">
+              <Text size="caption" tone="muted" className="uppercase tracking-[0.18em]">
+                {str(fromCms, 'mediaAlt') ?? 'Made in Yorkshire'}
+              </Text>
+            </div>
+          </AspectRatio>
         </div>
-      </AspectRatio>
-    </Grid>
+      </div>
+    </section>
   );
 }

@@ -2,23 +2,13 @@
 
 import { use, useMemo } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import {
-  AspectRatio,
-  Breadcrumb,
-  Cluster,
-  FormField,
-  Grid,
-  Heading,
-  Pagination,
-  Select,
-  Stack,
-  Text,
-} from '@offisdesign/ui';
+import { AspectRatio, Breadcrumb, Heading, Pagination, Stack, Text } from '@offisdesign/ui';
 import { useCollection, useSearch } from '../../../../lib/hooks';
 import { JsonLd } from '../../../../components/seo/json-ld';
 import { breadcrumbJsonLd } from '../../../../components/seo/schemas';
 import { ProductGrid } from '../../../../components/listing/product-grid';
 import { FilterSidebar } from '../../../../components/listing/filter-sidebar';
+import { PlpToolbar } from '../../../../components/listing/plp-toolbar';
 import { parseFilters, serializeFilters, type DiscoveryFilters } from '../../../../lib/filters/url';
 import { EmptyResult } from '../../../../lib/ux/async-boundary';
 import { usePageView } from '../../../../lib/providers';
@@ -89,8 +79,8 @@ export default function CollectionPage({ params }: { params: Promise<{ slug: str
         </Stack>
       </section>
 
-      <Grid cols={4} gap={6}>
-        <div className="lg:col-span-1">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-10">
+        <div>
           <FilterSidebar
             filters={filters}
             onChange={setFilters}
@@ -104,56 +94,41 @@ export default function CollectionPage({ params }: { params: Promise<{ slug: str
             hide={{ collection: true }}
           />
         </div>
-        <section aria-label="Products" className="lg:col-span-3">
-          <Cluster justify="between" align="center" className="mb-4">
-            <Text size="sm" tone="muted">
-              {search.data
-                ? `${search.data.total} result${search.data.total === 1 ? '' : 's'}`
-                : 'Loading…'}
-            </Text>
-            <FormField label="Sort" htmlFor="sort">
-              <Select
-                id="sort"
-                value={filters.sort ?? 'relevance'}
-                onChange={(e) =>
-                  setFilters({
-                    ...filters,
-                    sort: e.target.value as DiscoveryFilters['sort'],
-                    page: undefined,
-                  })
-                }
-              >
-                <option value="relevance">Relevance</option>
-                <option value="recent">Newest</option>
-                <option value="price-asc">Price ↑</option>
-                <option value="price-desc">Price ↓</option>
-              </Select>
-            </FormField>
-          </Cluster>
-          <ProductGrid
-            isLoading={search.isLoading}
-            isError={search.isError}
-            cols={3}
-            location={`collection:${slug}`}
-            products={search.data?.hits.map((h) => ({
-              id: h.productId,
-              slug: h.slug,
-              name: h.name,
-              fromAmount: h.fromAmount,
-              currency: h.currency,
-            }))}
-          />
-          {search.data && search.data.total > search.data.pageSize && (
-            <div className="mt-8 flex justify-center">
-              <Pagination
-                page={search.data.page}
-                pageCount={Math.ceil(search.data.total / search.data.pageSize)}
-                onPageChange={(p) => setFilters({ ...filters, page: p })}
-              />
-            </div>
-          )}
+        <section aria-label="Products">
+          <Stack gap={6}>
+            <PlpToolbar
+              total={search.data?.total}
+              sort={filters.sort ?? 'relevance'}
+              onSortChange={(v) =>
+                setFilters({ ...filters, sort: v as DiscoveryFilters['sort'], page: undefined })
+              }
+              selectId="sort-collection"
+            />
+            <ProductGrid
+              isLoading={search.isLoading}
+              isError={search.isError}
+              cols={3}
+              location={`collection:${slug}`}
+              products={search.data?.hits.map((h) => ({
+                id: h.productId,
+                slug: h.slug,
+                name: h.name,
+                fromAmount: h.fromAmount,
+                currency: h.currency,
+              }))}
+            />
+            {search.data && search.data.total > search.data.pageSize && (
+              <div className="flex justify-center">
+                <Pagination
+                  page={search.data.page}
+                  pageCount={Math.ceil(search.data.total / search.data.pageSize)}
+                  onPageChange={(p) => setFilters({ ...filters, page: p })}
+                />
+              </div>
+            )}
+          </Stack>
         </section>
-      </Grid>
+      </div>
     </Stack>
   );
 }

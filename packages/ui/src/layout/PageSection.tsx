@@ -38,8 +38,19 @@ export const PageSection = React.forwardRef<HTMLElement, PageSectionProps>(funct
   const Component = Tag as 'section';
 
   if (variant === 'bleed') {
+    // Break out of any constraining parent (e.g. the shop layout's 1120px
+    // Container) to span the full viewport width. `mx-[calc(50%-50vw)]` pulls
+    // the element to each viewport edge; `w-screen` makes it 100vw. When the
+    // parent is already full-width this computes to a no-op. Pair with
+    // `overflow-x: clip` on <body> (globals.css) so the scrollbar gutter never
+    // produces a horizontal scroll. For contained content inside a bleed band,
+    // nest a <Container> in the children.
     return (
-      <Component ref={ref as never} className={cn(paddingMap[padding], className)} {...rest}>
+      <Component
+        ref={ref as never}
+        className={cn('mx-[calc(50%-50vw)] w-screen', paddingMap[padding], className)}
+        {...rest}
+      >
         {children}
       </Component>
     );

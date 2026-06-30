@@ -1,25 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Menu, Search as SearchIcon, ShoppingBag, User } from 'lucide-react';
+import { ChevronDown, Menu, Search as SearchIcon, ShoppingBag, User } from 'lucide-react';
 import { Cluster, Container, Icon, NavLink } from '@offisdesign/ui';
+import { cn } from '@offisdesign/utils';
 import { CartDrawer } from './cart-drawer';
+import { MegaMenu, type MegaMenuFeatured } from './mega-menu';
 import { MobileNav } from './mobile-nav';
 import { SearchOverlay } from './search-overlay';
 import { useNavigation } from '../../lib/hooks';
-import { useAuth, useCart, useAnalytics } from '../../lib/providers';
+import { useAnalytics, useAuth, useCart } from '../../lib/providers';
 
 interface NavItem {
   label: string;
   href: string;
+  children?: Array<{ label: string; href: string }>;
+  featured?: MegaMenuFeatured;
 }
 
 function isNavItem(v: unknown): v is NavItem {
   return typeof v === 'object' && v !== null && typeof (v as NavItem).label === 'string';
 }
 
-function DesktopNav() {
+const CLOSE_DELAY_MS = 120;
+
+function DesktopNav({
+  activeMegaLabel,
+  onOpen,
+  onScheduleClose,
+  onCancelClose,
+}: {
+  activeMegaLabel: string | null;
+  onOpen: (item: NavItem) => void;
+  onScheduleClose: () => void;
+  onCancelClose: () => void;
+}) {
   const { data } = useNavigation('header');
   const { track } = useAnalytics();
   const items = Array.isArray(data?.items)
@@ -30,20 +46,63 @@ function DesktopNav() {
         { label: 'Journal', href: '/journal' },
         { label: 'About', href: '/about' },
       ];
+
   return (
     <nav aria-label="Primary" className="hidden md:block">
       <Cluster gap={8}>
-        {items.map((item) => (
-          <NavLink
-            key={item.href}
-            href={item.href}
-            onClick={() =>
-              track('nav_clicked', { label: item.label, href: item.href, surface: 'header' })
-            }
-          >
-            {item.label}
-          </NavLink>
-        ))}
+        {items.map((item) => {
+          const hasMega = Boolean(item.children?.length);
+          const isActive = activeMegaLabel === item.label;
+
+          if (hasMega) {
+            return (
+              <button
+                key={item.label}
+                type="button"
+                aria-expanded={isActive}
+                aria-haspopup="menu"
+                onMouseEnter={() => {
+                  onCancelClose();
+                  onOpen(item);
+                }}
+                onMouseLeave={onScheduleClose}
+                onClick={() => (isActive ? onScheduleClose() : onOpen(item))}
+                className={cn(
+                  'font-body text-body-sm duration-base ease-standard relative inline-flex cursor-pointer items-center gap-1 font-semibold uppercase tracking-wide transition-colors',
+                  isActive ? 'text-primary' : 'text-secondary hover:text-primary',
+                  'after:bg-primary after:duration-base after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:transition-transform',
+                  isActive ? 'after:scale-x-100' : 'hover:after:scale-x-100',
+                  'focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-2',
+                )}
+              >
+                {item.label}
+                <ChevronDown
+                  width={11}
+                  height={11}
+                  aria-hidden
+                  className={cn(
+                    'duration-base ease-standard transition-transform',
+                    isActive && 'rotate-180',
+                  )}
+                />
+              </button>
+            );
+          }
+
+          return (
+            <NavLink
+              key={item.href}
+              href={item.href}
+              onMouseEnter={onScheduleClose}
+              onClick={() => {
+                track('nav_clicked', { label: item.label, href: item.href, surface: 'header' });
+                onScheduleClose();
+              }}
+            >
+              {item.label}
+            </NavLink>
+          );
+        })}
       </Cluster>
     </nav>
   );
@@ -53,14 +112,42 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [activeMega, setActiveMega] = useState<NavItem | null>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { itemCount } = useCart();
   const { isAuthenticated } = useAuth();
   const { track } = useAnalytics();
 
+  const scheduleClose = useCallback(() => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setActiveMega(null), CLOSE_DELAY_MS);
+  }, []);
+
+  const cancelClose = useCallback(() => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+  }, []);
+
+  const openMega = useCallback(
+    (item: NavItem) => {
+      cancelClose();
+      setActiveMega(item);
+    },
+    [cancelClose],
+  );
+
+  useEffect(() => {
+    if (!activeMega) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setActiveMega(null);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [activeMega]);
+
   return (
     <>
-      <header className="z-sticky border-border bg-background/95 sticky top-0 border-b backdrop-blur">
-        <Container className="flex items-center gap-4 py-4">
+      <header className="z-sticky border-border bg-background/95 relative sticky top-0 border-b backdrop-blur">
+        <Container className="flex items-center gap-6 py-5">
           <button
             type="button"
             className="text-secondary hover:bg-primary-subtle hover:text-primary focus-visible:shadow-focus inline-flex h-10 w-10 items-center justify-center rounded-sm transition-colors focus-visible:outline-none md:hidden"
@@ -69,16 +156,27 @@ export function Header() {
           >
             <Icon icon={Menu} decorative />
           </button>
+
           <Link
             href="/"
-            className="font-display text-h4 text-secondary uppercase tracking-wide"
-            onClick={() => track('nav_clicked', { label: 'Home', href: '/', surface: 'header' })}
+            className="font-display text-h3 text-secondary shrink-0 uppercase tracking-[0.12em]"
+            onClick={() => {
+              track('nav_clicked', { label: 'Home', href: '/', surface: 'header' });
+              setActiveMega(null);
+            }}
           >
             Offisdesign
           </Link>
+
           <div className="flex-1">
-            <DesktopNav />
+            <DesktopNav
+              activeMegaLabel={activeMega?.label ?? null}
+              onOpen={openMega}
+              onScheduleClose={scheduleClose}
+              onCancelClose={cancelClose}
+            />
           </div>
+
           <Cluster gap={1} align="center">
             <button
               type="button"
@@ -116,7 +214,27 @@ export function Header() {
             </button>
           </Cluster>
         </Container>
+
+        {activeMega && activeMega.children && activeMega.children.length > 0 && (
+          <MegaMenu
+            label={activeMega.label}
+            items={activeMega.children}
+            {...(activeMega.featured !== undefined && { featured: activeMega.featured })}
+            onClose={() => setActiveMega(null)}
+            onMouseEnter={cancelClose}
+            onMouseLeave={scheduleClose}
+          />
+        )}
       </header>
+
+      {activeMega && (
+        <div
+          aria-hidden
+          className="z-dropdown bg-secondary/10 fixed inset-0 cursor-default"
+          onClick={() => setActiveMega(null)}
+        />
+      )}
+
       <MobileNav open={mobileOpen} onClose={() => setMobileOpen(false)} />
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />

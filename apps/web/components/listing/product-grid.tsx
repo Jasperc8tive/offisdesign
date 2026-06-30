@@ -1,6 +1,7 @@
 'use client';
 
-import { AspectRatio, Card, CardBody, Grid, Skeleton, Stack } from '@offisdesign/ui';
+import { Skeleton, Stack } from '@offisdesign/ui';
+import { cn } from '@offisdesign/utils';
 import { ProductCard, type ProductCardData } from './product-card';
 import { EmptyResult } from '../../lib/ux/async-boundary';
 
@@ -15,6 +16,17 @@ interface Props {
   skeletonCount?: number;
 }
 
+// Always two-up on mobile (premium grids never go single-column for products),
+// stepping up to the requested column count on wider viewports.
+const colsMap: Record<3 | 4, string> = {
+  3: 'grid-cols-2 md:grid-cols-3',
+  4: 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+};
+
+function GridShell({ cols, children }: { cols: 3 | 4; children: React.ReactNode }) {
+  return <div className={cn('grid gap-x-4 gap-y-8 md:gap-6', colsMap[cols])}>{children}</div>;
+}
+
 export function ProductGrid({
   products,
   isLoading,
@@ -27,19 +39,15 @@ export function ProductGrid({
 }: Props) {
   if (isLoading) {
     return (
-      <Grid cols={cols} gap={4}>
+      <GridShell cols={cols}>
         {Array.from({ length: skeletonCount }).map((_, i) => (
-          <Card key={i}>
-            <AspectRatio ratio={1} className="bg-primary-subtle rounded-t-md" />
-            <CardBody>
-              <Stack gap={2}>
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </Stack>
-            </CardBody>
-          </Card>
+          <Stack gap={3} key={i}>
+            <Skeleton className="aspect-square w-full" rounded="md" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </Stack>
         ))}
-      </Grid>
+      </GridShell>
     );
   }
   if (isError) {
@@ -49,10 +57,10 @@ export function ProductGrid({
     return <EmptyResult title={emptyTitle} description={emptyDescription} />;
   }
   return (
-    <Grid cols={cols} gap={4}>
+    <GridShell cols={cols}>
       {products.map((p) => (
         <ProductCard key={p.id} product={p} location={location} />
       ))}
-    </Grid>
+    </GridShell>
   );
 }
