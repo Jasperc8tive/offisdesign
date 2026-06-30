@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Alert, Grid, Heading, Stack, Text } from '@offisdesign/ui';
+import { Lock } from 'lucide-react';
+import { Alert, Cluster, FormField, Heading, Input, Stack, Text } from '@offisdesign/ui';
 import { AddressForm, type AddressValue } from '../../../components/checkout/address-form';
 import { OrderSummary } from '../../../components/checkout/order-summary';
 import { PaymentStep } from '../../../components/checkout/payment-step';
@@ -151,21 +152,32 @@ export default function CheckoutPage() {
     <Stack gap={6}>
       <Heading level={1}>Checkout</Heading>
       <StepIndicator current={step as 'address' | 'shipping' | 'payment' | 'review'} />
-      <Grid cols={3} gap={6}>
-        <section className="lg:col-span-2" aria-label="Checkout">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <section aria-label="Checkout">
           <Stack gap={6}>
             {error && <Alert variant="error">{error}</Alert>}
             {step === 'address' && (
-              <Stack gap={4}>
+              <Stack gap={6}>
                 {!auth.isAuthenticated && (
-                  <input
-                    type="email"
-                    placeholder="Email for order updates"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="border-default bg-canvas text-body-sm focus-visible:ring-primary w-full rounded-sm border px-3 py-2 focus-visible:outline-none focus-visible:ring-2"
-                  />
+                  <Stack gap={3}>
+                    <Heading level={3}>Contact</Heading>
+                    <FormField
+                      label="Email"
+                      htmlFor="checkout-email"
+                      required
+                      helperText="For your order confirmation and delivery updates."
+                    >
+                      <Input
+                        id="checkout-email"
+                        type="email"
+                        autoComplete="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </FormField>
+                  </Stack>
                 )}
                 <AddressForm
                   {...(shippingAddress ? { initial: shippingAddress } : {})}
@@ -211,7 +223,7 @@ export default function CheckoutPage() {
             )}
           </Stack>
         </section>
-        <aside className="lg:col-span-1" aria-label="Order summary">
+        <aside aria-label="Order summary" className="lg:sticky lg:top-24 lg:self-start">
           <OrderSummary
             cart={cart}
             {...(quote
@@ -222,8 +234,14 @@ export default function CheckoutPage() {
                 }
               : {})}
           />
+          <Cluster gap={2} align="center" justify="center" className="mt-4">
+            <Lock width={14} height={14} aria-hidden className="text-primary" />
+            <Text size="sm" tone="muted">
+              Encrypted &amp; secure checkout
+            </Text>
+          </Cluster>
         </aside>
-      </Grid>
+      </div>
     </Stack>
   );
 }

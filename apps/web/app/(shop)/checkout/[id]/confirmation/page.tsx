@@ -3,18 +3,8 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import {
-  Alert,
-  Button,
-  Card,
-  CardBody,
-  Cluster,
-  Divider,
-  Heading,
-  PriceTag,
-  Stack,
-  Text,
-} from '@offisdesign/ui';
+import { Check } from 'lucide-react';
+import { Alert, Button, Cluster, Divider, Heading, PriceTag, Stack, Text } from '@offisdesign/ui';
 import { useOrder } from '../../../../../lib/hooks/checkout';
 import { useAnalytics, useCart } from '../../../../../lib/providers';
 
@@ -36,23 +26,35 @@ export default function ConfirmationPage() {
   if (isError || !order) return <Alert variant="error">Could not load this order.</Alert>;
 
   return (
-    <Stack gap={6}>
-      <Stack gap={2}>
-        <Heading level={1}>Thank you for your order</Heading>
-        <Text tone="muted">
-          Order <strong>{order.number}</strong> is confirmed. We&apos;ll email you when it ships.
-        </Text>
-      </Stack>
-      <Card>
-        <CardBody>
+    <div className="mx-auto max-w-xl">
+      <Stack gap={8}>
+        <Stack gap={3} align="center" className="text-center">
+          <span className="bg-primary-subtle text-primary inline-flex h-14 w-14 items-center justify-center rounded-full">
+            <Check width={28} height={28} aria-hidden />
+          </span>
+          <Stack gap={2} align="center">
+            <Heading level={1}>Thank you for your order</Heading>
+            <Text tone="muted" className="max-w-prose">
+              Order <strong>{order.number}</strong> is confirmed. We&apos;ll email you a receipt and
+              let you know the moment it ships.
+            </Text>
+          </Stack>
+        </Stack>
+
+        <div className="bg-surface rounded-lg p-6">
           <Stack gap={4}>
             <Heading level={4}>Summary</Heading>
-            <Stack gap={2}>
+            <Stack gap={3}>
               {order.items.map((it) => (
-                <Cluster key={it.id} justify="between">
-                  <Text size="sm">
-                    {it.productName} × {it.quantity}
-                  </Text>
+                <Cluster key={it.id} justify="between" align="start" gap={3} wrap={false}>
+                  <div className="min-w-0">
+                    <Text size="sm" className="text-secondary truncate">
+                      {it.productName}
+                    </Text>
+                    <Text size="sm" tone="muted">
+                      Qty {it.quantity}
+                    </Text>
+                  </div>
                   <PriceTag amount={it.totalAmount} currency={it.currency} size="sm" />
                 </Cluster>
               ))}
@@ -94,16 +96,17 @@ export default function ConfirmationPage() {
               <PriceTag amount={order.totalAmount} currency={order.currency} size="lg" />
             </Cluster>
           </Stack>
-        </CardBody>
-      </Card>
-      <Cluster gap={3}>
-        <Link href="/account/orders">
-          <Button variant="outline">View orders</Button>
-        </Link>
-        <Link href="/">
-          <Button>Continue shopping</Button>
-        </Link>
-      </Cluster>
-    </Stack>
+        </div>
+
+        <Cluster gap={3} justify="center">
+          <Link href="/account/orders">
+            <Button variant="outline">View orders</Button>
+          </Link>
+          <Link href="/search">
+            <Button>Continue shopping</Button>
+          </Link>
+        </Cluster>
+      </Stack>
+    </div>
   );
 }

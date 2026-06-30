@@ -7,7 +7,6 @@ import {
   Alert,
   Avatar,
   Badge,
-  Button,
   Card,
   CardBody,
   Cluster,
@@ -21,7 +20,7 @@ import { formatMoney } from '../../../lib/ux/money';
 
 export default function AccountDashboardPage() {
   const router = useRouter();
-  const { user, isLoading, isAuthenticated, logout } = useAuth();
+  const { user, isLoading, isAuthenticated } = useAuth();
   const orders = useOrders({ pageSize: 3 });
   const addresses = useAddresses();
   const sessions = useSessions();
@@ -48,11 +47,6 @@ export default function AccountDashboardPage() {
             </Badge>
           </Cluster>
         </Stack>
-        <div className="ml-auto">
-          <Button variant="outline" onClick={() => logout().then(() => router.replace('/'))}>
-            Sign out
-          </Button>
-        </div>
       </Cluster>
 
       {!verified && (

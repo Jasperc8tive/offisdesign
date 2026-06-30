@@ -29,7 +29,7 @@ function VerifyContent() {
   }, [token]); // verify mutation handle is stable across renders
 
   return (
-    <Stack gap={6} className="mx-auto max-w-md">
+    <Stack gap={6}>
       <Heading level={1}>Verify email</Heading>
       {status === 'pending' && (
         <Stack gap={3}>

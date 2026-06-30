@@ -46,7 +46,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <Stack gap={6} className="mx-auto max-w-md">
+    <Stack gap={6}>
       <Stack gap={2}>
         <Heading level={1}>Create your account</Heading>
         <Text tone="muted">A quick sign-up — we&rsquo;ll send a verification email next.</Text>

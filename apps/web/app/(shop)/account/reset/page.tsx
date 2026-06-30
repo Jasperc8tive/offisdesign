@@ -100,7 +100,7 @@ function CompleteReset({ token }: { token: string }) {
 function ResetContent() {
   const token = useSearchParams().get('token');
   return (
-    <Stack gap={6} className="mx-auto max-w-md">
+    <Stack gap={6}>
       <Stack gap={2}>
         <Heading level={1}>Reset password</Heading>
         <Text tone="muted">

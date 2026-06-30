@@ -31,7 +31,7 @@ export default function LoginPage() {
   }
 
   return (
-    <Stack gap={6} className="mx-auto max-w-md">
+    <Stack gap={6}>
       <Stack gap={2}>
         <Heading level={1}>Sign in</Heading>
         <Text tone="muted">Welcome back. Sign in to your Offisdesign account.</Text>

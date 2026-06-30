@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { AspectRatio, Card, CardBody, Grid, Heading, Stack, Text } from '@offisdesign/ui';
+import { AspectRatio, Heading, Stack, Text } from '@offisdesign/ui';
 import { useRecentlyViewed } from '../../lib/providers';
 import { useAnalytics } from '../../lib/providers';
 
@@ -17,7 +17,7 @@ export function RecentlyViewedStrip({ excludeProductId }: Props) {
   return (
     <Stack gap={4}>
       <Heading level={2}>Recently viewed</Heading>
-      <Grid cols={4} gap={4}>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4 md:gap-6">
         {list.map((p) => (
           <Link
             key={p.productId}
@@ -29,18 +29,17 @@ export function RecentlyViewedStrip({ excludeProductId }: Props) {
                 location: 'recently_viewed',
               })
             }
+            className="focus-visible:ring-primary group block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4"
           >
-            <Card interactive className="h-full">
-              <AspectRatio ratio={1} className="bg-primary-subtle rounded-t-md" />
-              <CardBody>
-                <Stack gap={1}>
-                  <Text className="text-secondary font-semibold">{p.name}</Text>
-                </Stack>
-              </CardBody>
-            </Card>
+            <AspectRatio ratio={1} className="bg-primary-subtle rounded-md">
+              <div className="duration-slow ease-standard h-full w-full transition-transform group-hover:scale-[1.03]" />
+            </AspectRatio>
+            <Text className="text-secondary group-hover:text-primary duration-base ease-standard mt-3 font-semibold transition-colors">
+              {p.name}
+            </Text>
           </Link>
         ))}
-      </Grid>
+      </div>
     </Stack>
   );
 }

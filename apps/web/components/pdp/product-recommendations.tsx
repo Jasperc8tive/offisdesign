@@ -4,21 +4,27 @@ import { Heading, Stack } from '@offisdesign/ui';
 import { ProductGrid } from '../listing/product-grid';
 import type { Product } from '../../lib/api/schemas';
 
+type LinkKind = 'RELATED' | 'CROSS_SELL' | 'UP_SELL';
+
 interface Props {
   title: string;
-  kind: 'RELATED' | 'CROSS_SELL' | 'UP_SELL';
+  /** Which curated link kinds to include — merged and de-duplicated. */
+  kinds: LinkKind[];
   links: Product['linksFrom'];
   location: string;
+  max?: number;
 }
 
 /**
- * Renders the admin-curated cross/up/related links attached to a product
- * (`ProductLink`). Hidden when no links of the given kind exist so each
- * section disappears cleanly rather than rendering an empty heading.
+ * Renders admin-curated cross/up/related links attached to a product
+ * (`ProductLink`). The PDP merges all curated kinds into a single strip so the
+ * page shows one focused "pairs well with" row instead of three near-identical
+ * grids. Hidden when no links match.
  */
-export function ProductRecommendations({ title, kind, links, location }: Props) {
+export function ProductRecommendations({ title, kinds, links, location, max = 4 }: Props) {
+  const seen = new Set<string>();
   const items = links
-    .filter((l) => l.kind === kind)
+    .filter((l) => kinds.includes(l.kind))
     .sort((a, b) => a.position - b.position)
     .map((l) => {
       const variant = l.to.variants[0];
@@ -30,7 +36,13 @@ export function ProductRecommendations({ title, kind, links, location }: Props) 
         currency: variant?.priceCurrency ?? 'GBP',
         ...(variant?.compareAtAmount ? { compareAtAmount: variant.compareAtAmount } : {}),
       };
-    });
+    })
+    .filter((item) => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    })
+    .slice(0, max);
 
   if (items.length === 0) return null;
 

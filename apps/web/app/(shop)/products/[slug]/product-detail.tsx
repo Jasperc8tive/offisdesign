@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ShoppingBag } from 'lucide-react';
 import {
@@ -9,6 +9,7 @@ import {
   Breadcrumb,
   Button,
   Cluster,
+  Divider,
   Grid,
   Heading,
   PriceTag,
@@ -47,12 +48,26 @@ export function ProductDetail({ slug }: { slug: string }) {
   const [variantId, setVariantId] = useState<string | undefined>(undefined);
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
+  const addToBagRef = useRef<HTMLDivElement>(null);
+  const [showStickyBar, setShowStickyBar] = useState(false);
 
   useEffect(() => {
     if (!data) return;
     recently.track({ productId: data.id, slug: data.slug, name: data.name });
     track('page_view', { path: `/products/${data.slug}`, title: data.name });
     // recently.track + track are stable; we want this once per product id.
+  }, [data?.id]);
+
+  // Reveal the mobile sticky add-to-bag bar once the primary button scrolls
+  // out of view, so the buy action is always one tap away.
+  useEffect(() => {
+    const el = addToBagRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => setShowStickyBar(!entry!.isIntersecting), {
+      rootMargin: '0px 0px -88px 0px',
+    });
+    io.observe(el);
+    return () => io.disconnect();
   }, [data?.id]);
 
   if (isLoading) {
@@ -133,40 +148,50 @@ export function ProductDetail({ slug }: { slug: string }) {
       <Grid cols={2} gap={8}>
         <Gallery images={data.media.map((m) => ({ id: m.id, alt: m.alt ?? data.name }))} />
 
-        <Stack gap={4}>
-          <Cluster gap={2}>
-            <InventoryBadge variantId={activeVariant.id} />
-            {activeVariant.compareAtAmount &&
-              activeVariant.compareAtAmount > activeVariant.priceAmount && (
-                <Badge variant="muted">Sale</Badge>
-              )}
-          </Cluster>
-          <Heading level={1}>{data.name}</Heading>
-          {data.brand && (
-            <Text size="sm" tone="muted">
-              {data.brand}
+        <Stack gap={4} className="md:sticky md:top-24 md:self-start">
+          <Stack gap={3}>
+            <Cluster gap={2}>
+              <InventoryBadge variantId={activeVariant.id} />
+              {activeVariant.compareAtAmount &&
+                activeVariant.compareAtAmount > activeVariant.priceAmount && (
+                  <Badge variant="muted">Sale</Badge>
+                )}
+            </Cluster>
+            {data.brand && (
+              <Text size="sm" tone="primary" className="font-semibold uppercase tracking-[0.18em]">
+                {data.brand}
+              </Text>
+            )}
+            <Heading level={1}>{data.name}</Heading>
+            <Rating
+              value={reviewSummary.data?.average ?? 0}
+              reviewCount={reviewSummary.data?.count ?? 0}
+            />
+            <PriceTag
+              amount={activeVariant.priceAmount}
+              currency={activeVariant.priceCurrency}
+              {...(activeVariant.compareAtAmount
+                ? { originalAmount: activeVariant.compareAtAmount }
+                : {})}
+              size="lg"
+            />
+          </Stack>
+
+          {data.description && (
+            <Text tone="muted" className="max-w-prose">
+              {data.description}
             </Text>
           )}
-          <Rating
-            value={reviewSummary.data?.average ?? 0}
-            reviewCount={reviewSummary.data?.count ?? 0}
-          />
-          <PriceTag
-            amount={activeVariant.priceAmount}
-            currency={activeVariant.priceCurrency}
-            {...(activeVariant.compareAtAmount
-              ? { originalAmount: activeVariant.compareAtAmount }
-              : {})}
-            size="lg"
-          />
-          {data.description && <Text tone="muted">{data.description}</Text>}
 
           {data.variants.length > 1 && (
-            <VariantPicker
-              product={data}
-              activeVariantId={activeVariant.id}
-              onChange={setVariantId}
-            />
+            <>
+              <Divider />
+              <VariantPicker
+                product={data}
+                activeVariantId={activeVariant.id}
+                onChange={setVariantId}
+              />
+            </>
           )}
 
           <Stack gap={2}>
@@ -177,15 +202,17 @@ export function ProductDetail({ slug }: { slug: string }) {
             </Cluster>
           </Stack>
 
-          <Button
-            size="lg"
-            fullWidth
-            loading={adding}
-            onClick={onAdd}
-            leadingIcon={<ShoppingBag width={18} height={18} aria-hidden />}
-          >
-            Add to bag
-          </Button>
+          <div ref={addToBagRef}>
+            <Button
+              size="lg"
+              fullWidth
+              loading={adding}
+              onClick={onAdd}
+              leadingIcon={<ShoppingBag width={18} height={18} aria-hidden />}
+            >
+              Add to bag
+            </Button>
+          </div>
 
           <Alert variant="info" title="Delivery 3–5 weeks">
             Free UK delivery on orders over £500.
@@ -218,32 +245,49 @@ export function ProductDetail({ slug }: { slug: string }) {
         </TabPanel>
       </Tabs>
 
-      <ProductRecommendations
-        title="Frequently bought together"
-        kind="CROSS_SELL"
-        links={data.linksFrom}
-        location="pdp_cross_sell"
-      />
-      <ProductRecommendations
-        title="Upgrade your pick"
-        kind="UP_SELL"
-        links={data.linksFrom}
-        location="pdp_up_sell"
-      />
-      <ProductRecommendations
-        title="Related pieces"
-        kind="RELATED"
-        links={data.linksFrom}
-        location="pdp_related_curated"
-      />
+      <Divider />
 
-      <RelatedProducts
-        title="You may also like"
-        {...(focalCollection ? { collection: focalCollection } : {})}
-        excludeProductId={data.id}
-      />
+      {/* Two focused recommendation strips (curated + algorithmic) plus the
+          personal recently-viewed row — down from five near-identical grids. */}
+      <Stack gap={12}>
+        <ProductRecommendations
+          title="Pairs well with"
+          kinds={['CROSS_SELL', 'UP_SELL', 'RELATED']}
+          links={data.linksFrom}
+          location="pdp_recommendations"
+        />
+        <RelatedProducts
+          title="You may also like"
+          {...(focalCollection ? { collection: focalCollection } : {})}
+          excludeProductId={data.id}
+        />
+        <RecentlyViewedStrip excludeProductId={data.id} />
+      </Stack>
 
-      <RecentlyViewedStrip excludeProductId={data.id} />
+      {/* Mobile sticky add-to-bag — appears once the primary button is scrolled
+          past. Hidden from md up, where the buy column is sticky beside the
+          gallery. */}
+      {showStickyBar && (
+        <div className="z-sticky border-border bg-background/95 fixed inset-x-0 bottom-0 border-t backdrop-blur md:hidden">
+          <div className="max-w-container mx-auto flex items-center gap-3 px-4 py-3">
+            <div className="min-w-0 flex-1">
+              <Text className="text-secondary truncate font-semibold">{data.name}</Text>
+              <PriceTag
+                amount={activeVariant.priceAmount}
+                currency={activeVariant.priceCurrency}
+                size="sm"
+              />
+            </div>
+            <Button
+              loading={adding}
+              onClick={onAdd}
+              leadingIcon={<ShoppingBag width={18} height={18} aria-hidden />}
+            >
+              Add to bag
+            </Button>
+          </div>
+        </div>
+      )}
     </Stack>
   );
 }

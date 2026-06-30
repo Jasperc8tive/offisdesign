@@ -10,14 +10,17 @@ import {
   EmptyState,
   PriceTag,
   Quantity,
+  Skeleton,
   Stack,
   Text,
 } from '@offisdesign/ui';
 import { Drawer } from './drawer';
+import { useVariantIndex } from '../../lib/hooks';
 import { useCart, toast } from '../../lib/providers';
 
 export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { cart, isLoading, itemCount, updateItem, removeItem } = useCart();
+  const { index, isLoading: indexLoading } = useVariantIndex({ enabled: open && itemCount > 0 });
 
   return (
     <Drawer
@@ -37,7 +40,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
             title="Your bag is empty"
             description="Add a piece to see it here."
             action={
-              <Link href="/" onClick={onClose}>
+              <Link href="/search" onClick={onClose}>
                 <Button>Start browsing</Button>
               </Link>
             }
@@ -45,42 +48,66 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
         </div>
       ) : (
         <Stack gap={3} className="p-4">
-          {cart.cart.items.map((line) => (
-            <Cluster key={line.id} gap={3} align="start">
-              <div className="w-20 shrink-0">
-                <AspectRatio ratio={1} className="bg-primary-subtle rounded-sm" />
-              </div>
-              <Stack gap={1} className="flex-1">
-                <Cluster justify="between" align="start">
-                  <Text className="text-secondary font-semibold">
-                    Variant {line.variantId.slice(0, 8)}…
-                  </Text>
-                  <button
-                    type="button"
-                    aria-label="Remove item"
-                    onClick={async () => {
-                      await removeItem(line.variantId);
-                      toast.success('Removed');
-                    }}
-                    className="text-muted hover:text-primary focus-visible:ring-primary transition-colors focus-visible:outline-none focus-visible:ring-2"
-                  >
-                    <Trash2 width={16} height={16} aria-hidden />
-                  </button>
-                </Cluster>
-                <Cluster justify="between" align="center">
-                  <Quantity
-                    value={line.quantity}
-                    onChange={(q) => updateItem({ variantId: line.variantId, quantity: q })}
-                  />
-                  <PriceTag
-                    amount={line.unitAmount * line.quantity}
-                    currency={line.currency}
-                    size="sm"
-                  />
-                </Cluster>
-              </Stack>
-            </Cluster>
-          ))}
+          {cart.cart.items.map((line) => {
+            const ref = index.get(line.variantId);
+            const href = ref ? `/products/${ref.slug}` : undefined;
+            return (
+              <Cluster key={line.id} gap={3} align="start" wrap={false}>
+                <div className="w-20 shrink-0">
+                  {href ? (
+                    <Link
+                      href={href}
+                      onClick={onClose}
+                      className="focus-visible:ring-primary block rounded-sm focus-visible:outline-none focus-visible:ring-2"
+                    >
+                      <AspectRatio ratio={1} className="bg-primary-subtle rounded-sm" />
+                    </Link>
+                  ) : (
+                    <AspectRatio ratio={1} className="bg-primary-subtle rounded-sm" />
+                  )}
+                </div>
+                <Stack gap={1} className="min-w-0 flex-1">
+                  <Cluster justify="between" align="start" wrap={false}>
+                    {indexLoading && !ref ? (
+                      <Skeleton className="h-4 w-28" />
+                    ) : href ? (
+                      <Link
+                        href={href}
+                        onClick={onClose}
+                        className="text-secondary hover:text-primary truncate font-semibold transition-colors focus-visible:underline focus-visible:outline-none"
+                      >
+                        {ref!.name}
+                      </Link>
+                    ) : (
+                      <Text className="text-secondary font-semibold">Item</Text>
+                    )}
+                    <button
+                      type="button"
+                      aria-label="Remove item"
+                      onClick={async () => {
+                        await removeItem(line.variantId);
+                        toast.success('Removed');
+                      }}
+                      className="text-muted hover:text-primary focus-visible:ring-primary shrink-0 rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2"
+                    >
+                      <Trash2 width={16} height={16} aria-hidden />
+                    </button>
+                  </Cluster>
+                  <Cluster justify="between" align="center">
+                    <Quantity
+                      value={line.quantity}
+                      onChange={(q) => updateItem({ variantId: line.variantId, quantity: q })}
+                    />
+                    <PriceTag
+                      amount={line.unitAmount * line.quantity}
+                      currency={line.currency}
+                      size="sm"
+                    />
+                  </Cluster>
+                </Stack>
+              </Cluster>
+            );
+          })}
           <Divider />
           <Stack gap={2}>
             <Cluster justify="between">
