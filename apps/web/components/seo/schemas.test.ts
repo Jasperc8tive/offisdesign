@@ -18,8 +18,8 @@ describe('JSON-LD schemas', () => {
 
   it('productJsonLd formats price in major units', () => {
     const product = productJsonLd({
-      name: 'Branch sofa',
-      slug: 'branch-sofa',
+      name: 'Aria task chair',
+      slug: 'aria-task-chair',
       priceAmount: 129_900,
       priceCurrency: 'NGN',
     });
@@ -33,10 +33,10 @@ describe('JSON-LD schemas', () => {
     const crumbs = breadcrumbJsonLd([
       { label: 'Home', href: '/' },
       { label: 'Shop', href: '/search' },
-      { label: 'Branch sofa', href: '/products/branch-sofa' },
+      { label: 'Aria task chair', href: '/products/aria-task-chair' },
     ]);
     expect(crumbs.itemListElement).toHaveLength(3);
     expect(crumbs.itemListElement[0]?.position).toBe(1);
-    expect(crumbs.itemListElement[2]?.name).toBe('Branch sofa');
+    expect(crumbs.itemListElement[2]?.name).toBe('Aria task chair');
   });
 });

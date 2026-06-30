@@ -30,15 +30,15 @@ const orders = [
     id: 'OD-1042',
     placedAt: '12 Mar 2026',
     status: 'Delivered',
-    total: 209700,
-    items: 'Branch 3-seater · Walnut chair × 2',
+    total: 87500000,
+    items: 'Executive desk · Task chair × 2',
   },
   {
     id: 'OD-0987',
     placedAt: '02 Feb 2026',
     status: 'Shipped',
-    total: 89900,
-    items: 'Oak dining table',
+    total: 65000000,
+    items: 'Conference table',
   },
 ];
 
@@ -100,7 +100,7 @@ export default function AccountPrototype() {
               <CardHeader>
                 <Cluster gap={2} align="center">
                   <Icon icon={MapPin} decorative className="text-primary" />
-                  <Heading level={4}>Home</Heading>
+                  <Heading level={4}>Office</Heading>
                   <Badge variant="muted">Default</Badge>
                 </Cluster>
               </CardHeader>
@@ -108,11 +108,11 @@ export default function AccountPrototype() {
                 <Text size="sm">
                   Mayowa D.
                   <br />
-                  12 Branch Lane
+                  14 Ozumba Mbadiwe Avenue
                   <br />
-                  London E2 7AB
+                  Victoria Island
                   <br />
-                  United Kingdom
+                  Lagos, Nigeria
                 </Text>
               </CardBody>
             </Card>
@@ -133,7 +133,7 @@ export default function AccountPrototype() {
             icon={<Icon icon={Heart} size="xl" decorative />}
             title="Your wishlist is empty"
             description="Save pieces you love to come back to later."
-            action={<Button>Start browsing</Button>}
+            action={<Button>Browse office furniture</Button>}
           />
         </TabPanel>
 

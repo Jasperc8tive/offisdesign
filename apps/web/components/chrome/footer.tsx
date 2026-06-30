@@ -15,7 +15,7 @@ function isNavGroup(v: unknown): v is NavGroup {
   return typeof v === 'object' && v !== null && typeof (v as NavGroup).label === 'string';
 }
 
-const PAYMENT_METHODS = ['Visa', 'Mastercard', 'PayPal', 'Amex'] as const;
+const PAYMENT_METHODS = ['Visa', 'Mastercard', 'Verve', 'Bank transfer'] as const;
 
 export function Footer() {
   const { data } = useNavigation('footer');

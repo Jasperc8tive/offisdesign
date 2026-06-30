@@ -48,10 +48,10 @@ export const SelectExample: Story = {
   render: () => (
     <div className="max-w-md p-8">
       <FormField label="Country" htmlFor="country" required>
-        <Select id="country" defaultValue="GB">
-          <option value="GB">United Kingdom</option>
-          <option value="IE">Ireland</option>
-          <option value="FR">France</option>
+        <Select id="country" defaultValue="NG">
+          <option value="NG">Nigeria</option>
+          <option value="GH">Ghana</option>
+          <option value="ZA">South Africa</option>
         </Select>
       </FormField>
     </div>

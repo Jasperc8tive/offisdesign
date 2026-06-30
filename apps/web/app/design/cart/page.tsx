@@ -25,14 +25,20 @@ interface LineItem {
 }
 
 const initial: LineItem[] = [
-  { id: '1', name: 'Branch 3-seater sofa', option: 'Oak / Linen Sand', unitAmount: 129900, qty: 1 },
-  { id: '2', name: 'Walnut side chair', option: 'Walnut', unitAmount: 39900, qty: 2 },
+  {
+    id: '1',
+    name: 'Aria ergonomic task chair',
+    option: 'Black / Mesh',
+    unitAmount: 18500000,
+    qty: 1,
+  },
+  { id: '2', name: 'Guest chair', option: 'Charcoal', unitAmount: 9500000, qty: 2 },
 ];
 
 export default function CartPrototype() {
   const [items, setItems] = useState<LineItem[]>(initial);
   const subtotal = items.reduce((sum, i) => sum + i.unitAmount * i.qty, 0);
-  const shipping = subtotal > 50000 ? 0 : 1500;
+  const shipping = subtotal > 50000000 ? 0 : 1500000;
   const total = subtotal + shipping;
 
   return (
@@ -53,7 +59,7 @@ export default function CartPrototype() {
           <div className="p-6">
             <EmptyState
               title="Your bag is empty"
-              description="Start adding pieces to see them here."
+              description="Start adding office furniture to see it here."
               action={<Button onClick={() => setItems(initial)}>Reset demo</Button>}
             />
           </div>
@@ -105,7 +111,7 @@ export default function CartPrototype() {
               <Text size="sm" tone="muted">
                 Shipping
               </Text>
-              <Text size="sm">{shipping === 0 ? 'Free' : '£15'}</Text>
+              <Text size="sm">{shipping === 0 ? 'Free' : '₦15,000'}</Text>
             </Cluster>
             <Divider />
             <Cluster justify="between" align="center">

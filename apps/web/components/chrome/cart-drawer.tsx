@@ -39,10 +39,10 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
         <div className="p-6">
           <EmptyState
             title="Your bag is empty"
-            description="Add a piece to see it here."
+            description="Add office furniture to start building your workspace."
             action={
               <Link href="/search" onClick={onClose}>
-                <Button>Start browsing</Button>
+                <Button>Browse office furniture</Button>
               </Link>
             }
           />

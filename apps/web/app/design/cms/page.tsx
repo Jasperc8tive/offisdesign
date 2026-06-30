@@ -24,11 +24,11 @@ export default function CmsPrototype() {
       <Reveal>
         <Stack gap={3}>
           <Badge variant="muted">Story</Badge>
-          <Display size="md">From workshop to home.</Display>
-          <Heading level={1}>How Branch furniture is made.</Heading>
+          <Display size="md">From brief to installation.</Display>
+          <Heading level={1}>How OFFISDESIGN furniture is made.</Heading>
           <Text tone="muted" className="max-w-prose">
-            A traceable supply chain from FSC timber to washable linens. Every piece is jointed,
-            sanded, and finished by makers in our Yorkshire workshop.
+            Precision-built for the workplace and quality-checked at every step — designed, made,
+            and finished by our team in Lagos.
           </Text>
         </Stack>
       </Reveal>
@@ -43,21 +43,21 @@ export default function CmsPrototype() {
             <Stack gap={4}>
               <Heading level={2}>The materials</Heading>
               <Text>
-                We start with kiln-dried European oak, traceable from forest to frame. Each board is
-                graded for grain consistency before being jointed by hand. Off-cuts are kept and
-                routed into small homeware — nothing leaves the workshop until it has a use.
+                We build with commercial-grade materials chosen for daily use — engineered timber
+                and steel frames, scratch- and stain-resistant work surfaces, and high-durability
+                upholstery rated for the workplace.
               </Text>
               <Text>
-                Linens come from a single Belgian mill that has run on hydro-electric power since
-                1947. We choose flax over cotton everywhere we can — it uses a tenth of the water
-                and grows in our climate.
+                Finishes are selected for comfort and longevity across long working days, then
+                matched to your brand and interior during the planning stage. Nothing ships until it
+                has passed our quality checks.
               </Text>
               <Divider />
               <Heading level={2}>The process</Heading>
               <Text>
-                Frames are bench-jointed and screwed; no nails. Cushions are filled with a feather
-                and silk-fibre blend held in linen ticking. Covers are removable for washing or
-                replacement, so a sofa can outlive its first life — and its second.
+                Every order is planned around your space. We confirm layouts and specifications,
+                build and quality-check, then deliver and install on site — followed by warranty and
+                after-sales support.
               </Text>
             </Stack>
           </div>
@@ -65,7 +65,7 @@ export default function CmsPrototype() {
             <Card>
               <CardBody>
                 <Stack gap={3}>
-                  <Heading level={4}>Workshop facts</Heading>
+                  <Heading level={4}>At a glance</Heading>
                   <Stack gap={2}>
                     <Cluster justify="between">
                       <Text size="sm" tone="muted">
@@ -75,13 +75,13 @@ export default function CmsPrototype() {
                     </Cluster>
                     <Cluster justify="between">
                       <Text size="sm" tone="muted">
-                        Makers
+                        Team
                       </Text>
                       <Text size="sm">22</Text>
                     </Cluster>
                     <Cluster justify="between">
                       <Text size="sm" tone="muted">
-                        Pieces made (2025)
+                        Projects delivered (2025)
                       </Text>
                       <Text size="sm">3,114</Text>
                     </Cluster>
@@ -104,8 +104,8 @@ export default function CmsPrototype() {
           <Heading level={2}>By the numbers</Heading>
           <Grid cols={3} gap={4}>
             {[
-              { n: '94%', l: 'Materials recyclable or reusable' },
-              { n: '0%', l: 'Single-use plastic in packaging' },
+              { n: '500+', l: 'Workspaces furnished across Lagos' },
+              { n: '48h', l: 'Consultation response time' },
               { n: '10y', l: 'Warranty across the catalogue' },
             ].map((s) => (
               <Card key={s.l}>

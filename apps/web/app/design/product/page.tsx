@@ -29,7 +29,7 @@ import {
 
 export default function ProductPrototype() {
   const [qty, setQty] = useState(1);
-  const [wood, setWood] = useState('oak');
+  const [finish, setFinish] = useState('black');
 
   return (
     <Stack gap={8}>
@@ -37,8 +37,8 @@ export default function ProductPrototype() {
         items={[
           { label: 'Home', href: '/' },
           { label: 'Shop', href: '#' },
-          { label: 'Sofas', href: '#' },
-          { label: 'Branch 3-seater' },
+          { label: 'Office chairs', href: '#' },
+          { label: 'Aria task chair' },
         ]}
       />
 
@@ -57,25 +57,25 @@ export default function ProductPrototype() {
             <Badge>New</Badge>
             <Badge variant="muted">Limited stock</Badge>
           </Cluster>
-          <Heading level={1}>Branch 3-seater sofa</Heading>
+          <Heading level={1}>Aria ergonomic task chair</Heading>
           <Rating value={4.5} reviewCount={128} />
-          <PriceTag amount={129900} originalAmount={149900} size="lg" />
+          <PriceTag amount={18500000} originalAmount={22500000} size="lg" />
           <Text tone="muted">
-            A flat-pack three-seater built around a solid oak frame. Removable linen covers,
-            washable filling, ten-year warranty.
+            A fully adjustable task chair with breathable mesh back, dynamic lumbar support, and a
+            4D armrest system. Built for full working days and backed by warranty.
           </Text>
 
           <Stack gap={2}>
-            <Text className="text-secondary font-semibold">Wood finish</Text>
+            <Text className="text-secondary font-semibold">Frame finish</Text>
             <Swatch
-              name="Wood"
-              value={wood}
-              onChange={setWood}
+              name="Frame finish"
+              value={finish}
+              onChange={setFinish}
               options={[
-                { value: 'oak', label: 'Oak', color: '#C9A66B' },
-                { value: 'walnut', label: 'Walnut', color: '#5C3A21' },
-                { value: 'ash', label: 'Ash', color: '#E8DCC2' },
                 { value: 'black', label: 'Black', color: '#1A1A1A' },
+                { value: 'graphite', label: 'Graphite', color: '#3F4246' },
+                { value: 'silver', label: 'Silver', color: '#C4C7CC' },
+                { value: 'white', label: 'White', color: '#F2F2F0' },
               ]}
             />
           </Stack>
@@ -100,10 +100,10 @@ export default function ProductPrototype() {
             Add to bag
           </Button>
 
-          <Alert variant="info" title="Delivery 3–5 weeks">
+          <Alert variant="info" title="Delivery & installation">
             <Cluster gap={2} align="center">
               <Icon icon={Truck} size="sm" decorative />
-              <Text size="sm">Free UK delivery on orders over £500.</Text>
+              <Text size="sm">Delivery and installation across Nigeria.</Text>
             </Cluster>
           </Alert>
         </Stack>
@@ -112,22 +112,24 @@ export default function ProductPrototype() {
       <Tabs defaultValue="details">
         <TabList label="Product info">
           <Tab value="details">Details</Tab>
-          <Tab value="materials">Materials</Tab>
-          <Tab value="delivery">Delivery</Tab>
+          <Tab value="materials">Materials &amp; care</Tab>
+          <Tab value="delivery">Delivery &amp; installation</Tab>
           <Tab value="reviews">Reviews</Tab>
         </TabList>
         <TabPanel value="details">
           <Text>
-            The Branch 3-seater is built around a solid kiln-dried hardwood frame, jointed and
-            screwed for life-long stability. Cushions are sprung beneath a high-resilience foam core
-            wrapped in feather and silk fibre.
+            The Aria task chair pairs a breathable mesh back with a contoured foam seat for support
+            across long working days. Synchronised tilt, seat-height and depth adjustment, and 4D
+            armrests adapt to each person at the desk.
           </Text>
         </TabPanel>
         <TabPanel value="materials">
-          <Text>FSC-certified oak, washable linen, recycled-feather fibre.</Text>
+          <Text>
+            Breathable mesh back, moulded foam seat, powder-coated steel base, nylon castors.
+          </Text>
         </TabPanel>
         <TabPanel value="delivery">
-          <Text>3–5 weeks to UK mainland. White-glove room of choice available.</Text>
+          <Text>Delivered and professionally installed across Nigeria.</Text>
         </TabPanel>
         <TabPanel value="reviews">
           <Text>128 reviews, average 4.5 / 5.</Text>
@@ -143,7 +145,7 @@ export default function ProductPrototype() {
               <CardBody>
                 <Stack gap={1}>
                   <Text className="text-secondary font-semibold">Companion piece {n}</Text>
-                  <PriceTag amount={49900 + n * 5000} size="sm" />
+                  <PriceTag amount={8500000 + n * 1500000} size="sm" />
                 </Stack>
               </CardBody>
             </Card>

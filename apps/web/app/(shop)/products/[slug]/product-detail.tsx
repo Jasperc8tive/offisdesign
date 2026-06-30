@@ -238,8 +238,8 @@ export function ProductDetail({ slug }: { slug: string }) {
       <Tabs defaultValue="details">
         <TabList label="Product info">
           <Tab value="details">Details</Tab>
-          <Tab value="materials">Materials</Tab>
-          <Tab value="delivery">Delivery</Tab>
+          <Tab value="materials">Materials &amp; care</Tab>
+          <Tab value="delivery">Delivery &amp; installation</Tab>
           <Tab value="reviews">Reviews</Tab>
         </TabList>
         <TabPanel value="details">
@@ -253,7 +253,10 @@ export function ProductDetail({ slug }: { slug: string }) {
           </Text>
         </TabPanel>
         <TabPanel value="delivery">
-          <Text>3–5 weeks to UK mainland. White-glove room of choice available.</Text>
+          <Text>
+            Delivered and professionally installed across Nigeria. Lead times vary by item and order
+            size — we&rsquo;ll confirm a schedule with you. Ask us about bulk and project orders.
+          </Text>
         </TabPanel>
         <TabPanel value="reviews">
           <ReviewsSection productId={data.id} />

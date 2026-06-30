@@ -54,9 +54,9 @@ export const Badges: Story = {
 export const Tags: Story = {
   render: () => (
     <Cluster gap={3} className="p-8">
-      <Tag>Oak</Tag>
-      <Tag onRemove={() => undefined}>Walnut</Tag>
-      <Tag onRemove={() => undefined}>£500 – £1000</Tag>
+      <Tag>Mesh</Tag>
+      <Tag onRemove={() => undefined}>Leather</Tag>
+      <Tag onRemove={() => undefined}>₦100,000 – ₦500,000</Tag>
     </Cluster>
   ),
 };

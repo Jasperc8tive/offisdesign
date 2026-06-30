@@ -24,9 +24,9 @@ import {
 
 const products = Array.from({ length: 9 }).map((_, i) => ({
   id: i,
-  name: `Branch sofa style ${i + 1}`,
-  price: 99900 + i * 5000,
-  original: i % 3 === 0 ? 129900 + i * 5000 : undefined,
+  name: `Task chair ${i + 1}`,
+  price: 9900000 + i * 1500000,
+  original: i % 3 === 0 ? 12900000 + i * 1500000 : undefined,
   rating: 4 + (i % 2) * 0.5,
   reviews: 24 + i * 3,
   badge: i === 1 ? 'New' : i === 4 ? 'Sale' : undefined,
@@ -34,15 +34,19 @@ const products = Array.from({ length: 9 }).map((_, i) => ({
 
 export default function CollectionPrototype() {
   const [page, setPage] = useState(1);
-  const [activeFilters, setActiveFilters] = useState<string[]>(['Oak', '£500 – £1500']);
+  const [activeFilters, setActiveFilters] = useState<string[]>(['Mesh', '₦100,000 – ₦500,000']);
   return (
     <Stack gap={6}>
       <Breadcrumb
-        items={[{ label: 'Home', href: '/' }, { label: 'Shop', href: '#' }, { label: 'Sofas' }]}
+        items={[
+          { label: 'Home', href: '/' },
+          { label: 'Shop', href: '#' },
+          { label: 'Office chairs' },
+        ]}
       />
       <Stack gap={2}>
-        <Heading level={1}>Sofas</Heading>
-        <Text tone="muted">62 pieces designed and built in Britain.</Text>
+        <Heading level={1}>Office chairs</Heading>
+        <Text tone="muted">62 pieces for the modern workspace.</Text>
       </Stack>
       <Cluster gap={2}>
         {activeFilters.map((f) => (
@@ -66,18 +70,18 @@ export default function CollectionPrototype() {
             <Stack gap={2}>
               <Label>Material</Label>
               <Stack gap={1}>
-                <Checkbox label="Oak" defaultChecked />
-                <Checkbox label="Walnut" />
-                <Checkbox label="Ash" />
-                <Checkbox label="Linen" />
+                <Checkbox label="Mesh" defaultChecked />
+                <Checkbox label="Leather" />
+                <Checkbox label="Fabric" />
+                <Checkbox label="Polyurethane" />
               </Stack>
             </Stack>
             <Stack gap={2}>
               <Label>Price</Label>
               <Stack gap={1}>
-                <Checkbox label="Under £500" />
-                <Checkbox label="£500 – £1500" defaultChecked />
-                <Checkbox label="£1500+" />
+                <Checkbox label="Under ₦100,000" />
+                <Checkbox label="₦100,000 – ₦500,000" defaultChecked />
+                <Checkbox label="₦500,000+" />
               </Stack>
             </Stack>
           </Stack>

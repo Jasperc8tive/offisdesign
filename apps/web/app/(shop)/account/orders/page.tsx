@@ -27,8 +27,8 @@ export default function OrderHistoryPage() {
         title="No orders yet"
         description="When you place an order it will appear here."
         action={
-          <Link href="/">
-            <Button>Start browsing</Button>
+          <Link href="/search">
+            <Button>Browse office furniture</Button>
           </Link>
         }
       />

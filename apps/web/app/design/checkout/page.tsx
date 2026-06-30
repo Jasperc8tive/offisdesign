@@ -70,10 +70,8 @@ export default function CheckoutPrototype() {
                 </FormField>
               </Grid>
               <FormField label="Country" htmlFor="country" required>
-                <Select id="country" defaultValue="GB">
-                  <option value="GB">United Kingdom</option>
-                  <option value="IE">Ireland</option>
-                  <option value="FR">France</option>
+                <Select id="country" defaultValue="NG">
+                  <option value="NG">Nigeria</option>
                 </Select>
               </FormField>
             </Stack>
@@ -110,7 +108,7 @@ export default function CheckoutPrototype() {
                             1–2 working days
                           </Text>
                         </Stack>
-                        <Text className="font-semibold">£18.00</Text>
+                        <Text className="font-semibold">₦18,000</Text>
                       </Cluster>
                     }
                     name="shipping"
@@ -138,12 +136,12 @@ export default function CheckoutPrototype() {
                 <Heading level={4}>Order summary</Heading>
                 <Stack gap={3}>
                   <Cluster justify="between">
-                    <Text size="sm">Branch 3-seater × 1</Text>
-                    <PriceTag amount={129900} size="sm" />
+                    <Text size="sm">Aria task chair × 1</Text>
+                    <PriceTag amount={18500000} size="sm" />
                   </Cluster>
                   <Cluster justify="between">
-                    <Text size="sm">Walnut side chair × 2</Text>
-                    <PriceTag amount={79800} size="sm" />
+                    <Text size="sm">Guest chair × 2</Text>
+                    <PriceTag amount={19000000} size="sm" />
                   </Cluster>
                 </Stack>
                 <Divider />
@@ -152,19 +150,19 @@ export default function CheckoutPrototype() {
                     <Text size="sm" tone="muted">
                       Subtotal
                     </Text>
-                    <PriceTag amount={209700} size="sm" />
+                    <PriceTag amount={37500000} size="sm" />
                   </Cluster>
                   <Cluster justify="between">
                     <Text size="sm" tone="muted">
                       Shipping
                     </Text>
-                    <Text size="sm">{shipping === 'standard' ? 'Free' : '£18.00'}</Text>
+                    <Text size="sm">{shipping === 'standard' ? 'Free' : '₦18,000'}</Text>
                   </Cluster>
                 </Stack>
                 <Divider />
                 <Cluster justify="between" align="center">
                   <Text className="text-secondary font-semibold">Total</Text>
-                  <PriceTag amount={shipping === 'standard' ? 209700 : 211500} size="lg" />
+                  <PriceTag amount={shipping === 'standard' ? 37500000 : 39300000} size="lg" />
                 </Cluster>
                 <Button size="lg" fullWidth>
                   Continue to payment

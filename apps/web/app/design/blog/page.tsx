@@ -17,9 +17,9 @@ import {
 import { Reveal } from '../_lib/Reveal';
 
 const related = [
-  { tag: 'Materials', title: 'Why we choose linen over cotton' },
-  { tag: 'Process', title: 'Inside the Yorkshire workshop' },
-  { tag: 'Stories', title: 'Living with the same sofa for ten years' },
+  { tag: 'Ergonomics', title: 'How to choose an ergonomic office chair' },
+  { tag: 'Process', title: 'Inside our Lagos workshop' },
+  { tag: 'Planning', title: 'Planning a productive office layout' },
 ];
 
 export default function BlogPrototype() {
@@ -29,27 +29,27 @@ export default function BlogPrototype() {
         items={[
           { label: 'Home', href: '/' },
           { label: 'Journal', href: '#' },
-          { label: 'Why we choose oak' },
+          { label: 'Designing for productivity' },
         ]}
       />
 
       <Reveal>
         <Stack gap={3}>
           <Cluster gap={2}>
-            <Badge variant="muted">Materials</Badge>
+            <Badge variant="muted">Workspace</Badge>
             <Text size="sm" tone="muted">
               6 min read · 02 March 2026
             </Text>
           </Cluster>
-          <Heading level={1}>Why we choose oak — and what we leave behind.</Heading>
+          <Heading level={1}>Designing a workspace that performs.</Heading>
           <Cluster gap={3} align="center">
-            <Avatar initials="EH" alt="Ella Harris" />
+            <Avatar initials="AO" alt="Adaeze Okafor" />
             <Stack gap={0}>
               <Text size="sm" className="text-secondary font-semibold">
-                Ella Harris
+                Adaeze Okafor
               </Text>
               <Text size="sm" tone="muted">
-                Head of materials
+                Head of workspace design
               </Text>
             </Stack>
           </Cluster>
@@ -65,20 +65,21 @@ export default function BlogPrototype() {
           <article className="prose lg:col-span-2">
             <Stack gap={4}>
               <Text>
-                Oak is one of the slowest-growing hardwoods we work with, and that is precisely the
-                point. Slow growth means tight grain, and tight grain means a frame that will keep
-                its shape for decades.
+                A workspace is a tool, and like any tool it either helps people do their best work
+                or quietly gets in the way. The best offices we design start from how teams actually
+                work — not from a furniture catalogue.
               </Text>
-              <Heading level={3}>Where it comes from</Heading>
+              <Heading level={3}>Start with how people work</Heading>
               <Text>
-                Every plank we buy is FSC-certified and traceable to a managed forest in France or
-                Germany. We avoid Eastern European stock — not because the trees are bad, but
-                because the chain of custody is harder to verify.
+                Before specifying a single desk, we map how the team moves through a day: focus
+                work, quick huddles, scheduled meetings, and downtime. The right mix of zones — and
+                the seating to match — does more for productivity than any single statement piece.
               </Text>
-              <Heading level={3}>What we leave behind</Heading>
+              <Heading level={3}>Build for the long term</Heading>
               <Text>
-                Off-cuts are routed into homeware. Sawdust feeds the workshop biomass boiler. The
-                only thing we discard is the bark, which goes to a local mulch supplier.
+                Teams grow and reorganise, so we plan for change. Modular workstations, adaptable
+                storage, and commercial-grade finishes mean the space keeps working as the business
+                does — backed by warranty and after-sales support.
               </Text>
               <Divider />
               <Text size="sm" tone="muted">
@@ -93,16 +94,18 @@ export default function BlogPrototype() {
                 <Stack gap={3}>
                   <Heading level={4}>In this article</Heading>
                   <Stack gap={1} as="ul">
-                    {['Where it comes from', 'What we leave behind', 'Reading more'].map((h) => (
-                      <li key={h}>
-                        <a
-                          href={`#${h.toLowerCase().replace(/\s+/g, '-')}`}
-                          className="font-body text-body-sm text-secondary hover:bg-primary-subtle hover:text-primary focus-visible:ring-primary block rounded-sm px-2 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2"
-                        >
-                          {h}
-                        </a>
-                      </li>
-                    ))}
+                    {['Start with how people work', 'Build for the long term', 'Reading more'].map(
+                      (h) => (
+                        <li key={h}>
+                          <a
+                            href={`#${h.toLowerCase().replace(/\s+/g, '-')}`}
+                            className="font-body text-body-sm text-secondary hover:bg-primary-subtle hover:text-primary focus-visible:ring-primary block rounded-sm px-2 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2"
+                          >
+                            {h}
+                          </a>
+                        </li>
+                      ),
+                    )}
                   </Stack>
                 </Stack>
               </CardBody>

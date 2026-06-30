@@ -135,7 +135,7 @@ function SearchContent() {
                 fromAmount: h.fromAmount,
                 currency: h.currency,
               }))}
-              emptyTitle={filters.q ? `No matches for "${filters.q}"` : 'No matches'}
+              emptyTitle={filters.q ? `No matches for "${filters.q}"` : 'No matching products'}
               emptyDescription="Try a different query or remove a filter."
             />
             {search.data && search.data.total > search.data.pageSize && (

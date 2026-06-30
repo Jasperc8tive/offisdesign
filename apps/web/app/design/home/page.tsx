@@ -20,23 +20,23 @@ import {
 import { Reveal } from '../_lib/Reveal';
 
 const collections = [
-  { name: 'Living', count: 24 },
-  { name: 'Dining', count: 18 },
-  { name: 'Bedroom', count: 14 },
-  { name: 'Workspace', count: 9 },
+  { name: 'Desks', count: 24 },
+  { name: 'Seating', count: 18 },
+  { name: 'Meeting', count: 14 },
+  { name: 'Storage', count: 9 },
 ];
 
 const featured = [
-  { name: 'Branch 3-seater sofa', price: 129900, original: 149900 },
-  { name: 'Oak dining table', price: 89900 },
-  { name: 'Walnut side chair', price: 39900 },
-  { name: 'Linen pendant light', price: 24900 },
+  { name: 'Executive desk', price: 48500000, original: 56500000 },
+  { name: 'Ergonomic task chair', price: 18500000 },
+  { name: 'Conference table', price: 65000000 },
+  { name: 'Storage credenza', price: 24000000 },
 ];
 
 const promises = [
-  { icon: Truck, title: 'Free UK delivery', body: 'On orders over £500.' },
-  { icon: Leaf, title: 'Responsibly made', body: 'FSC-certified timber, low-impact finishes.' },
-  { icon: Ruler, title: 'Made to last', body: '10-year warranty on every frame.' },
+  { icon: Truck, title: 'Delivery & installation', body: 'Professional fit-out across Nigeria.' },
+  { icon: Leaf, title: 'Responsibly made', body: 'Durable, commercial-grade materials.' },
+  { icon: Ruler, title: 'Warranty & support', body: 'Backed by warranty and after-sales support.' },
 ];
 
 export default function HomePrototype() {
@@ -44,18 +44,18 @@ export default function HomePrototype() {
     <Stack gap={16}>
       <Reveal>
         <Stack gap={6}>
-          <Badge variant="muted">New season</Badge>
-          <Display size="lg">Built in Britain.</Display>
-          <Heading level={1}>Furniture made to outlast trends.</Heading>
+          <Badge variant="muted">New arrivals</Badge>
+          <Display size="lg">Where better work begins.</Display>
+          <Heading level={1}>Premium office furniture and workspace solutions.</Heading>
           <Text tone="muted" className="max-w-prose">
-            Solid timber, traceable supply chains, ten-year warranties. Designed for everyday life —
-            not for landfill.
+            Ergonomic desks, task seating, and meeting spaces — designed, delivered, and installed
+            for the way your team works.
           </Text>
           <Cluster gap={3}>
             <Button trailingIcon={<ArrowRight width={16} height={16} aria-hidden />}>
               Shop the collection
             </Button>
-            <Button variant="outline">Browse journal</Button>
+            <Button variant="outline">Book a consultation</Button>
           </Cluster>
         </Stack>
       </Reveal>
@@ -70,7 +70,7 @@ export default function HomePrototype() {
 
       <Reveal>
         <Stack gap={4}>
-          <Heading level={2}>Shop by room</Heading>
+          <Heading level={2}>Shop by workspace</Heading>
           <Grid cols={4} gap={4}>
             {collections.map((c) => (
               <Card interactive key={c.name} tabIndex={0}>

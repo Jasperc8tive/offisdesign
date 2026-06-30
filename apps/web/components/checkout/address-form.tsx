@@ -41,7 +41,7 @@ export function AddressForm({
     city: initial?.city ?? '',
     region: initial?.region ?? '',
     postcode: initial?.postcode ?? '',
-    countryCode: initial?.countryCode ?? 'GB',
+    countryCode: initial?.countryCode ?? 'NG',
     phone: initial?.phone ?? '',
   });
 
@@ -122,12 +122,7 @@ export function AddressForm({
               value={value.countryCode}
               onChange={(e) => set('countryCode', e.target.value)}
             >
-              <option value="GB">United Kingdom</option>
-              <option value="IE">Ireland</option>
-              <option value="FR">France</option>
-              <option value="DE">Germany</option>
-              <option value="ES">Spain</option>
-              <option value="NL">Netherlands</option>
+              <option value="NG">Nigeria</option>
             </Select>
           </FormField>
           <FormField label="Phone" htmlFor="phone">

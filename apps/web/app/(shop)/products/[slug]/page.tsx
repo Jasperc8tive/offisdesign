@@ -18,7 +18,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const product = await catalogService.product(slug);
     const variant = product.variants[0];
     const description =
-      product.description ?? 'Furniture made to outlast trends, built in Britain.';
+      product.description ??
+      `${product.name} — premium office furniture and workspace solutions from OFFISDESIGN, Lagos.`;
     const ogImage = `${apiConfig.webUrl.replace(/\/$/, '')}/og/product/${encodeURIComponent(slug)}`;
     const title = product.name;
     return {

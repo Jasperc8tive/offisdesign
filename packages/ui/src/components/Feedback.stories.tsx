@@ -17,8 +17,8 @@ type Story = StoryObj;
 export const Alerts: Story = {
   render: () => (
     <Stack gap={3} className="max-w-xl p-8">
-      <Alert variant="info" title="Free delivery on orders over £500">
-        Standard UK shipping, 3–5 working days.
+      <Alert variant="info" title="Delivery & installation">
+        Professional delivery and setup across Nigeria.
       </Alert>
       <Alert variant="success" title="Saved" onDismiss={() => undefined}>
         Your changes were saved.

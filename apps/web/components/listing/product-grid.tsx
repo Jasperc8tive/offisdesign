@@ -32,7 +32,7 @@ export function ProductGrid({
   isLoading,
   isError,
   location,
-  emptyTitle = 'No matches',
+  emptyTitle = 'No matching products',
   emptyDescription = 'Try a different filter or sort.',
   cols = 4,
   skeletonCount = 8,

@@ -111,7 +111,7 @@ export default function Showcase() {
 
       <Section id="typography" title="Typography">
         <Stack gap={4}>
-          <Display size="lg">Branch.</Display>
+          <Display size="lg">OFFISDESIGN.</Display>
           <Heading level={1}>Heading 1 — Frank Ruhl Libre</Heading>
           <Heading level={2}>Heading 2</Heading>
           <Heading level={3}>Heading 3</Heading>
@@ -191,7 +191,7 @@ export default function Showcase() {
             <Badge variant="secondary">Featured</Badge>
             <Badge variant="outline">Limited</Badge>
             <Badge variant="muted">Sale</Badge>
-            <Tag onRemove={() => undefined}>Oak</Tag>
+            <Tag onRemove={() => undefined}>Mesh</Tag>
             <Avatar initials="MD" alt="Mayowa D." />
             <Avatar initials="JS" size="lg" alt="Jane S." />
           </Cluster>
@@ -241,8 +241,8 @@ export default function Showcase() {
             items={[
               { label: 'Home', href: '/' },
               { label: 'Shop', href: '#' },
-              { label: 'Sofas', href: '#' },
-              { label: 'Branch 3-seater' },
+              { label: 'Office chairs', href: '#' },
+              { label: 'Aria task chair' },
             ]}
           />
           <Tabs defaultValue="details">
@@ -268,9 +268,9 @@ export default function Showcase() {
       <Section id="commerce" title="Commerce">
         <Stack gap={6}>
           <Cluster gap={6} align="center">
-            <PriceTag amount={129900} />
-            <PriceTag amount={89900} originalAmount={129900} />
-            <PriceTag amount={250000} size="lg" />
+            <PriceTag amount={18500000} />
+            <PriceTag amount={18500000} originalAmount={22500000} />
+            <PriceTag amount={65000000} size="lg" />
           </Cluster>
           <Cluster gap={6} align="center">
             <Quantity value={q} onChange={setQ} />
@@ -310,10 +310,10 @@ export default function Showcase() {
               <Textarea id="notes" placeholder="Anything we should know?" />
             </FormField>
             <FormField label="Country" htmlFor="country">
-              <Select id="country" defaultValue="GB">
-                <option value="GB">United Kingdom</option>
-                <option value="IE">Ireland</option>
-                <option value="FR">France</option>
+              <Select id="country" defaultValue="NG">
+                <option value="NG">Nigeria</option>
+                <option value="GH">Ghana</option>
+                <option value="ZA">South Africa</option>
               </Select>
             </FormField>
           </Stack>
@@ -343,8 +343,8 @@ export default function Showcase() {
 
       <Section id="feedback" title="Feedback">
         <Stack gap={4}>
-          <Alert variant="info" title="Free delivery over £500">
-            Standard UK shipping, 3–5 working days.
+          <Alert variant="info" title="Delivery & installation">
+            Professional delivery and setup across Nigeria.
           </Alert>
           <Alert variant="success" title="Saved" onDismiss={() => undefined}>
             Your changes were saved.
@@ -368,7 +368,7 @@ export default function Showcase() {
             icon={<Inbox width={32} height={32} aria-hidden />}
             title="No saved items yet"
             description="Heart products as you browse to save them here."
-            action={<Button>Start browsing</Button>}
+            action={<Button>Browse office furniture</Button>}
           />
         </Stack>
       </Section>

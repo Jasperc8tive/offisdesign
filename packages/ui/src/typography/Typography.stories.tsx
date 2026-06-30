@@ -41,9 +41,9 @@ export const Body: Story = {
 export const DisplayText: Story = {
   render: () => (
     <div className="space-y-4 p-8">
-      <Display size="lg">Branch.</Display>
-      <Display size="md">Made to last.</Display>
-      <Display size="sm">Built in Britain.</Display>
+      <Display size="lg">OFFISDESIGN.</Display>
+      <Display size="md">Where better work begins.</Display>
+      <Display size="sm">Designed for productivity.</Display>
     </div>
   ),
 };
