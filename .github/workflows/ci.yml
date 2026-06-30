@@ -211,7 +211,10 @@ jobs:
             ${{ runner.os }}-turbo-
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @offisdesign/database db:generate
-      - run: pnpm --filter @offisdesign/web build
+      # Build web AND its workspace deps (@offisdesign/ui, /config, …) — the
+      # trailing `...` selects dependencies, in topological order. Without them
+      # `next build` can't resolve the workspace packages (webpack errors).
+      - run: pnpm --filter "@offisdesign/web..." build
       # `pnpm dlx` runs the CLI without polluting the lockfile or mixing
       # package managers inside the workspace. Previous npm-install pattern
       # bypassed pnpm's hoisting and could resolve to a different package.
