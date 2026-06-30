@@ -4,7 +4,7 @@
 # Nest context (`worker.js`) so it never listens on a port and never serves
 # HTTP. Scale this deployment independently of the API to add queue capacity.
 
-FROM node:20.18-alpine AS base
+FROM node:20.19-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable

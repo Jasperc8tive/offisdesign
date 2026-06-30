@@ -7,7 +7,7 @@
 #   build  → compiles the NestJS app via turbo
 #   runner → minimal runtime image, runs as non-root with HEALTHCHECK
 
-FROM node:20.18-alpine AS base
+FROM node:20.19-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
