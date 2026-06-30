@@ -5,6 +5,12 @@ import { MEDIA_BLUR, resolveMediaUrl } from '../../lib/media/url';
 interface MediaProps {
   /** API media id (product `mediaId`, blog `coverMediaId`, testimonial `imageId`). */
   mediaId?: string | null | undefined;
+  /**
+   * Direct image URL fallback used when no CDN media resolves — e.g. curated
+   * editorial stock (Brand Bible §28). A resolved `mediaId` always wins, so CMS
+   * photography overrides the fallback automatically.
+   */
+  src?: string | undefined;
   /** Meaningful description — usually the product/post title. */
   alt: string;
   /** Responsive `sizes` hint; default assumes full-width. */
@@ -21,12 +27,19 @@ interface MediaProps {
  * identical to today. Configure `NEXT_PUBLIC_MEDIA_HOSTNAME` to switch real
  * photography on everywhere at once.
  */
-export function Media({ mediaId, alt, sizes = '100vw', priority = false, className }: MediaProps) {
-  const src = resolveMediaUrl(mediaId);
-  if (!src) return null;
+export function Media({
+  mediaId,
+  src,
+  alt,
+  sizes = '100vw',
+  priority = false,
+  className,
+}: MediaProps) {
+  const resolved = resolveMediaUrl(mediaId) ?? src;
+  if (!resolved) return null;
   return (
     <Image
-      src={src}
+      src={resolved}
       alt={alt}
       fill
       sizes={sizes}

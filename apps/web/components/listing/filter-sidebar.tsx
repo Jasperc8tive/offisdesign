@@ -18,15 +18,15 @@ interface Props {
 
 type FacetKey = 'collection' | 'category' | 'tag';
 
-// Furniture price bands, in pence (matching the stored filter unit). `undefined`
-// means an open bound. Presets keep price selection to one tap instead of two
-// number fields.
+// Office-furniture price bands, in kobo (minor units; ₦1 = 100 kobo).
+// `undefined` means an open bound. Presets keep price selection to one tap
+// instead of two number fields.
 const PRICE_PRESETS: Array<{ label: string; min?: number; max?: number }> = [
   { label: 'Any price' },
-  { label: 'Under £500', max: 50_000 },
-  { label: '£500 – £1,000', min: 50_000, max: 100_000 },
-  { label: '£1,000 – £2,000', min: 100_000, max: 200_000 },
-  { label: 'Over £2,000', min: 200_000 },
+  { label: 'Under ₦100,000', max: 10_000_000 },
+  { label: '₦100,000 – ₦300,000', min: 10_000_000, max: 30_000_000 },
+  { label: '₦300,000 – ₦700,000', min: 30_000_000, max: 70_000_000 },
+  { label: 'Over ₦700,000', min: 70_000_000 },
 ];
 
 function humanize(slug: string): string {

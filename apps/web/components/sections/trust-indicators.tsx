@@ -1,12 +1,24 @@
 'use client';
 
-import { Leaf, Ruler, Truck } from 'lucide-react';
+import { Ruler, ShieldCheck, Truck } from 'lucide-react';
 import { Icon, Stack, Text } from '@offisdesign/ui';
 
 const PROMISES = [
-  { icon: Truck, title: 'Free UK delivery', body: 'On orders over £500.' },
-  { icon: Leaf, title: 'Responsibly made', body: 'FSC-certified timber, low-impact finishes.' },
-  { icon: Ruler, title: 'Made to last', body: '10-year warranty on every frame.' },
+  {
+    icon: Ruler,
+    title: 'Workspace consultation',
+    body: 'Space planning and layout, tailored to how you work.',
+  },
+  {
+    icon: Truck,
+    title: 'Delivery & installation',
+    body: 'Professional fit-out and setup across Nigeria.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Warranty & support',
+    body: 'Quality-built and backed by attentive after-sales care.',
+  },
 ];
 
 /**

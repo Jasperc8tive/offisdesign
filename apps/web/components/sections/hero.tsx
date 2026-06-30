@@ -16,7 +16,8 @@ import {
 import { useCmsPage } from '../../lib/hooks';
 import { findBlock, str, type Block } from './cms-block';
 import { Media } from '../media/media';
-import { resolveMediaUrl } from '../../lib/media/url';
+import { STOCK } from '../../lib/media/stock';
+import { BRAND_CONTACT } from '../../lib/brand/contact';
 import { useAnalytics } from '../../lib/providers';
 
 interface HeroPayload {
@@ -30,12 +31,12 @@ interface HeroPayload {
 }
 
 const DEFAULT_HERO: HeroPayload = {
-  eyebrow: 'New season',
-  display: 'Built in Britain.',
-  title: 'Furniture made to outlast trends.',
-  lead: 'Solid timber, traceable supply chains, ten-year warranties. Designed for everyday life — not for landfill.',
-  primaryCta: { label: 'Shop the collection', href: '/search' },
-  secondaryCta: { label: 'Browse journal', href: '/journal' },
+  eyebrow: 'Workspace solutions',
+  display: 'Where better work begins.',
+  title: 'Premium office furniture and workspace solutions.',
+  lead: 'From executive offices to collaborative floors, we plan, furnish, and install workspaces that perform — designed for productivity, built to last.',
+  primaryCta: { label: 'Browse office furniture', href: '/search' },
+  secondaryCta: { label: 'Request a consultation', href: BRAND_CONTACT.whatsapp },
 };
 
 /**
@@ -118,6 +119,9 @@ export function Hero() {
                     href: hero.secondaryCta?.href ?? '',
                   })
                 }
+                {...(hero.secondaryCta.href.startsWith('http')
+                  ? { target: '_blank', rel: 'noopener noreferrer' }
+                  : {})}
               >
                 <Button
                   variant="link"
@@ -132,31 +136,25 @@ export function Hero() {
           <Cluster gap={6} className="text-muted pt-3">
             <span className="font-body text-body-sm inline-flex items-center gap-2">
               <Icon icon={Truck} size="sm" decorative className="text-primary" />
-              Free UK delivery over £500
+              Delivery &amp; installation
             </span>
             <span className="font-body text-body-sm inline-flex items-center gap-2">
               <Icon icon={ShieldCheck} size="sm" decorative className="text-primary" />
-              Ten-year warranty
+              Warranty &amp; support
             </span>
           </Cluster>
         </Stack>
 
-        {/* Media — real photography when configured, brand placeholder otherwise */}
+        {/* Media — CMS photography when configured; curated workspace stock otherwise */}
         <div className="order-2">
           <AspectRatio ratio={4 / 5} className="bg-primary-subtle rounded-lg lg:aspect-[5/6]">
             <Media
               mediaId={hero.mediaId}
-              alt={hero.display ?? 'Offisdesign'}
+              src={STOCK.hero.src}
+              alt={str(fromCms, 'mediaAlt') ?? STOCK.hero.alt}
               priority
               sizes="(min-width: 1024px) 50vw, 100vw"
             />
-            {!resolveMediaUrl(hero.mediaId) && (
-              <div className="text-muted flex h-full w-full items-end p-5">
-                <Text size="caption" tone="muted" className="uppercase tracking-[0.18em]">
-                  {str(fromCms, 'mediaAlt') ?? 'Made in Yorkshire'}
-                </Text>
-              </div>
-            )}
           </AspectRatio>
         </div>
       </div>

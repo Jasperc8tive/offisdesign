@@ -12,7 +12,9 @@ export async function generateMetadata({
     const collection = await catalogService.collection(slug);
     const url = `${apiConfig.webUrl}/collections/${slug}`;
     const title = collection.name;
-    const description = collection.description ?? `Browse ${collection.name} on Offisdesign.`;
+    const description =
+      collection.description ??
+      `Browse the ${collection.name} collection — premium office furniture at OFFISDESIGN, Lagos.`;
     return {
       title,
       description,

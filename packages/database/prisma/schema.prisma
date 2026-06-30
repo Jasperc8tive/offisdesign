@@ -288,7 +288,7 @@ model ProductVariant {
   barcode         String?
   name            String?
   priceAmount     Int       @map("price_amount")
-  priceCurrency   String    @default("GBP") @map("price_currency") @db.Char(3)
+  priceCurrency   String    @default("NGN") @map("price_currency") @db.Char(3)
   compareAtAmount Int?      @map("compare_at_amount")
   weightGrams     Int?      @map("weight_grams")
   isDefault       Boolean   @default(false) @map("is_default")
@@ -540,7 +540,7 @@ model Cart {
   customerId    String?    @map("customer_id") @db.Uuid
   anonymousId   String?    @map("anonymous_id") @db.Uuid
   email         String?    @db.Citext
-  currency      String     @default("GBP") @db.Char(3)
+  currency      String     @default("NGN") @db.Char(3)
   status        CartStatus @default(ACTIVE)
   appliedCoupon String?    @map("applied_coupon")
   /// Optimistic concurrency.
@@ -563,7 +563,7 @@ model CartItem {
   variantId  String   @map("variant_id") @db.Uuid
   quantity   Int
   unitAmount Int      @map("unit_amount")
-  currency   String   @default("GBP") @db.Char(3)
+  currency   String   @default("NGN") @db.Char(3)
   metadata   Json?
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -595,7 +595,7 @@ model Order {
   number          String      @unique
   customerId      String?     @map("customer_id") @db.Uuid
   email           String      @db.Citext
-  currency        String      @default("GBP") @db.Char(3)
+  currency        String      @default("NGN") @db.Char(3)
   subtotalAmount  Int         @map("subtotal_amount")
   shippingAmount  Int         @map("shipping_amount")
   taxAmount       Int         @map("tax_amount")
@@ -629,7 +629,7 @@ model OrderItem {
   quantity    Int
   unitAmount  Int      @map("unit_amount")
   totalAmount Int      @map("total_amount")
-  currency    String   @default("GBP") @db.Char(3)
+  currency    String   @default("NGN") @db.Char(3)
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -671,7 +671,7 @@ model Payment {
   provider     String
   providerRef  String        @map("provider_ref")
   amount       Int
-  currency     String        @default("GBP") @db.Char(3)
+  currency     String        @default("NGN") @db.Char(3)
   status       PaymentStatus @default(PENDING)
   providerData Json          @map("provider_data")
   createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -949,7 +949,7 @@ model DiscountUsage {
   contextType String  @map("context_type")
   contextId  String   @map("context_id") @db.Uuid
   amount     Int
-  currency   String   @default("GBP") @db.Char(3)
+  currency   String   @default("NGN") @db.Char(3)
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   discount Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
@@ -1003,7 +1003,7 @@ model CheckoutSession {
   cartId          String         @unique @map("cart_id") @db.Uuid
   customerId      String?        @map("customer_id") @db.Uuid
   email           String         @db.Citext
-  currency        String         @default("GBP") @db.Char(3)
+  currency        String         @default("NGN") @db.Char(3)
   shippingAddress Json?          @map("shipping_address")
   billingAddress  Json?          @map("billing_address")
   shippingMethod  Json?          @map("shipping_method")

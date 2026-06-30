@@ -5,7 +5,7 @@ describe('JSON-LD schemas', () => {
   it('homepageOrgJsonLd is a valid Organization', () => {
     const org = homepageOrgJsonLd();
     expect(org['@type']).toBe('Organization');
-    expect(org.name).toBe('Offisdesign');
+    expect(org.name).toBe('OFFISDESIGN');
     expect(org.url).toMatch(/^http/);
   });
 
@@ -21,11 +21,11 @@ describe('JSON-LD schemas', () => {
       name: 'Branch sofa',
       slug: 'branch-sofa',
       priceAmount: 129_900,
-      priceCurrency: 'GBP',
+      priceCurrency: 'NGN',
     });
     expect(product['@type']).toBe('Product');
     expect(product.offers.price).toBe('1299.00');
-    expect(product.offers.priceCurrency).toBe('GBP');
+    expect(product.offers.priceCurrency).toBe('NGN');
     expect(product.offers.availability).toContain('InStock');
   });
 

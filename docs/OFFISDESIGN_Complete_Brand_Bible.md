@@ -28,15 +28,16 @@ Version 1.0
 17. SEO Strategy
 18. Visual Identity Direction
 19. Photography Style Guide
-20. Color Palette
-21. Typography Recommendations
-22. Marketing Funnel
-23. Buyer Journey
-24. Customer Experience Principles
-25. FAQ Knowledge Base
-26. AI Prompt Context
-27. Creative Brief Template
-28. Brand Governance
+
+20. Marketing Funnel
+21. Buyer Journey
+22. Customer Experience Principles
+23. FAQ Knowledge Base
+24. AI Prompt Context
+25. Creative Brief Template
+26. Brand Governance
+27. Contact
+28. Stock Photography & Image Sourcing Policy
 
 ---
 
@@ -473,3 +474,202 @@ Location: No. 20B Ologun Agbaje Street Off Adeola Odeku Street, Victoria, Lagos,
 
 Instagram handle - [text] (https://www.instagram.com/offisdesign/)
 Whatsapp- [text](https://api.whatsapp.com/send/?phone=2349135973800&text&type=phone_number&app_absent=0)
+
+I would add it as a new section rather than burying it inside the Photography Style Guide. That way, Claude will treat it as an operational rule instead of just a design recommendation.
+
+You can append the following section to the end of the Brand Bible.
+
+---
+
+# 28. Stock Photography & Image Sourcing Policy
+
+## Purpose
+
+Until OFFISDESIGN has a complete library of original photography, all AI-assisted development, design, marketing, and content generation should use high-quality royalty-free stock photography that accurately represents the OFFISDESIGN brand.
+
+These images are intended to replace placeholder images throughout the website, presentations, documentation, and marketing materials.
+
+---
+
+## Approved Sources
+
+When selecting photography, prioritize these sources in the following order:
+
+### Tier 1 (Preferred)
+
+- Unsplash
+- Pexels
+- Pixabay
+
+### Tier 2
+
+- Burst by Shopify
+- Kaboompics
+- StockSnap
+- Life of Pix
+- ISO Republic
+
+Only use images that are legally available for commercial use under the respective platform's license.
+
+Do not use watermarked images.
+
+Do not use copyrighted images from Google Image Search or competitor websites.
+
+---
+
+## Image Selection Principles
+
+Every selected image must reinforce OFFISDESIGN's positioning as a premium office furniture and workspace solutions company.
+
+Images should communicate:
+
+- Premium quality
+- Modern workspaces
+- Productivity
+- Corporate professionalism
+- Intelligent office planning
+- Comfort
+- Collaboration
+- Executive environments
+- Architectural interiors
+
+The goal is to make OFFISDESIGN feel like a premium workspace brand rather than a generic furniture retailer.
+
+---
+
+## Preferred Photography Style
+
+Images should prioritize:
+
+- Bright natural lighting
+- Architectural compositions
+- Minimal interiors
+- Clean workspaces
+- Neutral color palettes
+- Premium office furniture
+- Executive offices
+- Conference rooms
+- Reception areas
+- Collaborative workspaces
+- Human interaction in professional environments
+- Wide editorial compositions
+- Detail craftsmanship shots
+- Texture and material close-ups
+
+Photography should feel editorial rather than catalog-driven.
+
+---
+
+## Avoid
+
+Never use imagery that contains:
+
+- Residential living rooms as the primary subject
+- Gaming setups
+- Home décor styling unrelated to offices
+- Low-resolution photography
+- Heavy HDR processing
+- Oversaturated colors
+- Cluttered environments
+- Generic business handshake stock photos
+- Obvious staged corporate clichés
+- Busy backgrounds
+- Watermarks
+- Visible brand logos from competing furniture companies
+
+---
+
+## Product Photography
+
+For product-focused sections, prioritize:
+
+- White or neutral seamless backgrounds
+- Multiple viewing angles
+- Close-up material shots
+- Ergonomic details
+- Furniture in real office environments
+- Consistent lighting across product collections
+
+Avoid inconsistent product styles within the same collection.
+
+---
+
+## Editorial Photography
+
+For marketing sections such as:
+
+- Homepage Hero
+- Brand Story
+- Workspace Planning
+- About
+- Services
+- Blog
+- Testimonials
+- Consultation
+
+Prefer photography showing:
+
+- Teams collaborating
+- Executive meetings
+- Designers planning office layouts
+- Modern reception spaces
+- Workspace transformations
+- Office installations
+- Professionals using ergonomic furniture
+
+The storytelling should communicate productivity rather than simply displaying furniture.
+
+---
+
+## Placeholder Replacement Policy
+
+Placeholder images are **not allowed** in production.
+
+Whenever a placeholder image is encountered during development, Claude must:
+
+1. Identify the purpose of the image.
+2. Determine the appropriate photography category.
+3. Source a relevant royalty-free image from the approved providers.
+4. Replace the placeholder.
+5. Ensure the image aligns with OFFISDESIGN's brand personality and visual identity.
+6. Ensure responsive sizing and proper optimization using the project's image pipeline.
+
+---
+
+## Image Optimization Rules
+
+Every replacement image must:
+
+- Use the project's image optimization pipeline.
+- Use responsive image sizing.
+- Support AVIF/WebP where available.
+- Include descriptive alt text.
+- Use lazy loading except for LCP images.
+- Maintain the correct aspect ratio for the component.
+- Preserve layout stability to avoid CLS.
+
+---
+
+## Brand Consistency Rule
+
+Image selection is a branding decision, not merely a visual decision.
+
+When multiple suitable images exist, always choose the one that best communicates:
+
+- Trust
+- Quality craftsmanship
+- Professional expertise
+- Modern workspace design
+- Productivity
+- Executive environments
+- Corporate credibility
+
+If no suitable image exists, Claude should recommend commissioning original OFFISDESIGN photography rather than selecting a poor-quality substitute.
+
+---
+
+## AI Development Directive
+
+During frontend development, redesigns, CMS implementation, content creation, or marketing asset generation, Claude should automatically replace placeholder images with carefully selected royalty-free photography from the approved sources.
+
+The selected imagery should make the website feel like a premium workspace brand comparable in visual quality to leading international office furniture brands while remaining authentic to OFFISDESIGN's unique positioning, brand personality, and customer experience principles. The imagery must always reinforce the premium, professional, contemporary, minimal, and intelligent identity defined throughout this Brand Bible.

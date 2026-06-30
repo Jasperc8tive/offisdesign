@@ -7,7 +7,9 @@ import { ChevronDown, Menu, Search as SearchIcon, ShoppingBag, User } from 'luci
 import { Cluster, Container, Icon, NavLink } from '@offisdesign/ui';
 import { cn } from '@offisdesign/utils';
 import { MegaMenu, type MegaMenuFeatured } from './mega-menu';
+import { ConsultationCta } from '../marketing/consultation-cta';
 import { useNavigation } from '../../lib/hooks';
+import { DEFAULT_HEADER_NAV } from '../../lib/nav/default-nav';
 import { useAnalytics, useAuth, useCart } from '../../lib/providers';
 
 // Overlays are only needed on interaction, so they're code-split and mounted on
@@ -44,14 +46,9 @@ function DesktopNav({
 }) {
   const { data } = useNavigation('header');
   const { track } = useAnalytics();
-  const items = Array.isArray(data?.items)
+  const items: NavItem[] = Array.isArray(data?.items)
     ? (data.items as unknown[]).filter(isNavItem)
-    : [
-        { label: 'Shop', href: '/search' },
-        { label: 'Collections', href: '/collections' },
-        { label: 'Journal', href: '/journal' },
-        { label: 'About', href: '/about' },
-      ];
+    : DEFAULT_HEADER_NAV;
 
   return (
     <nav aria-label="Primary" className="hidden md:block">
@@ -182,6 +179,13 @@ export function Header() {
               onCancelClose={cancelClose}
             />
           </div>
+
+          <ConsultationCta
+            location="header"
+            label="Get a quote"
+            size="sm"
+            className="hidden lg:inline-flex"
+          />
 
           <Cluster gap={1} align="center">
             <button

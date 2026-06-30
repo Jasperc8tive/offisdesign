@@ -2,7 +2,7 @@ import * as React from 'react';
 import { cn } from '../internal/cn';
 
 export interface PriceTagProps extends React.HTMLAttributes<HTMLSpanElement> {
-  /** Minor units (pence). Single source of truth — locked at Stage 3. */
+  /** Minor units (e.g. kobo). Single source of truth — locked at Stage 3. */
   amount: number;
   currency?: string;
   /** Optional original price (also in minor units) to render as strikethrough. */
@@ -27,7 +27,7 @@ function format(amount: number, currency: string, locale: string) {
 }
 
 export const PriceTag = React.forwardRef<HTMLSpanElement, PriceTagProps>(function PriceTag(
-  { amount, currency = 'GBP', originalAmount, locale = 'en-GB', size = 'md', className, ...rest },
+  { amount, currency = 'NGN', originalAmount, locale = 'en-NG', size = 'md', className, ...rest },
   ref,
 ) {
   const isOnSale = originalAmount !== undefined && originalAmount > amount;

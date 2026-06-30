@@ -16,7 +16,9 @@ const nextConfig = {
         ? [{ protocol: 'https', hostname: process.env.NEXT_PUBLIC_MEDIA_HOSTNAME }]
         : []),
       { protocol: 'https', hostname: '**.offisdesign.com' },
-      { protocol: 'https', hostname: '**.branchfurniture.com' },
+      // Royalty-free editorial stock photography (Brand Bible §28), used until
+      // original OFFISDESIGN photography is available. See lib/media/stock.ts.
+      { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
   },
   // Configured for the storefront's runtime deps:

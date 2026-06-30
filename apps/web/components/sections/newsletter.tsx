@@ -24,8 +24,8 @@ interface Props {
 
 export function Newsletter({
   source = 'homepage_footer',
-  title = 'Sign up for new arrivals.',
-  lead = 'One email a month — collections, journal posts, no spam.',
+  title = 'Workspace insights, monthly.',
+  lead = 'Productivity tips, project showcases, and new collections — written for decision-makers. No spam.',
 }: Props) {
   const subscribe = useSubscribeNewsletter();
   const { track } = useAnalytics();

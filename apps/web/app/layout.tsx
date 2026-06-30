@@ -32,14 +32,15 @@ const body = DM_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL(apiConfig.webUrl),
   title: {
-    default: 'Offisdesign — Furniture made to outlast trends',
-    template: '%s — Offisdesign',
+    default: 'OFFISDESIGN — Office Furniture & Workspace Solutions in Lagos, Nigeria',
+    template: '%s — OFFISDESIGN',
   },
-  description: 'Solid timber, traceable supply chains, ten-year warranties. Built in Britain.',
-  applicationName: 'Offisdesign',
-  authors: [{ name: 'Offisdesign' }],
+  description:
+    'Premium office furniture and workspace solutions in Lagos, Nigeria — executive desks, ergonomic chairs, workstations, and complete office fit-out, designed for productivity.',
+  applicationName: 'OFFISDESIGN',
+  authors: [{ name: 'OFFISDESIGN' }],
   robots: { index: true, follow: true },
-  openGraph: { siteName: 'Offisdesign', locale: 'en_GB', type: 'website' },
+  openGraph: { siteName: 'OFFISDESIGN', locale: 'en_NG', type: 'website' },
   twitter: { card: 'summary_large_image' },
 };
 

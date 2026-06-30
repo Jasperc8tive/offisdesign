@@ -1,15 +1,24 @@
 import { apiConfig } from '../../lib/api/config';
+import { BRAND_CONTACT } from '../../lib/brand/contact';
 
 /** Organization schema for the homepage. */
 export function homepageOrgJsonLd() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Offisdesign',
+    name: 'OFFISDESIGN',
     url: apiConfig.webUrl,
     logo: `${apiConfig.webUrl}/icon.svg`,
-    sameAs: [],
-    description: 'Furniture made to outlast trends, built in Britain.',
+    sameAs: [BRAND_CONTACT.instagram],
+    description:
+      'Premium office furniture and workspace solutions in Lagos, Nigeria — furniture, workspace planning, and interior fit-out for productive offices.',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'No. 20B Ologun Agbaje Street, Off Adeola Odeku Street, Victoria Island',
+      addressLocality: 'Lagos',
+      addressCountry: 'NG',
+    },
+    areaServed: 'NG',
   };
 }
 
@@ -19,7 +28,7 @@ export function websiteJsonLd() {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     url: apiConfig.webUrl,
-    name: 'Offisdesign',
+    name: 'OFFISDESIGN',
     potentialAction: {
       '@type': 'SearchAction',
       target: `${apiConfig.webUrl}/search?q={search_term_string}`,

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Lock, RotateCcw, Trash2, Truck } from 'lucide-react';
+import { Lock, ShieldCheck, Trash2, Truck } from 'lucide-react';
 import {
   Alert,
   AspectRatio,
@@ -21,13 +21,18 @@ import {
 } from '@offisdesign/ui';
 import { useVariantIndex, type VariantRef } from '../../../lib/hooks';
 import { Media } from '../../../components/media/media';
+import { ConsultationCta } from '../../../components/marketing/consultation-cta';
 import { useCart, toast } from '../../../lib/providers';
 import { ApiError } from '../../../lib/api/errors';
 
 const TRUST = [
   { icon: Lock, label: 'Secure checkout', detail: 'Encrypted payment, Stripe-protected.' },
-  { icon: Truck, label: 'Free UK delivery', detail: 'On orders over £500.' },
-  { icon: RotateCcw, label: '30-day returns', detail: 'Changed your mind? Send it back.' },
+  { icon: Truck, label: 'Delivery & installation', detail: 'Professional setup across Nigeria.' },
+  {
+    icon: ShieldCheck,
+    label: 'Warranty & support',
+    detail: 'Quality-built, with after-sales care.',
+  },
 ];
 
 interface LineProps {
@@ -279,6 +284,18 @@ export default function CartPage() {
               </Cluster>
             ))}
           </Stack>
+
+          <div className="border-border mt-6 rounded-lg border border-dashed p-5">
+            <Stack gap={2}>
+              <Text size="sm" className="text-secondary font-semibold">
+                Ordering for a team or project?
+              </Text>
+              <Text size="sm" tone="muted">
+                We offer bulk pricing, space planning, and installation across Nigeria.
+              </Text>
+              <ConsultationCta location="cart" label="Request a quote" variant="link" size="sm" />
+            </Stack>
+          </div>
         </aside>
       </div>
     </Stack>

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Button, Container, Display, PageSection, Stack, Text } from '@offisdesign/ui';
 import { useCmsPage } from '../../lib/hooks';
 import { findBlock, type Block } from './cms-block';
+import { BRAND_CONTACT } from '../../lib/brand/contact';
 import { useAnalytics } from '../../lib/providers';
 
 interface BannerPayload {
@@ -15,11 +16,11 @@ interface BannerPayload {
 }
 
 const DEFAULT: BannerPayload = {
-  eyebrow: 'Limited time',
-  title: 'Spring sale',
-  body: 'Save up to 20% on selected pieces.',
-  href: '/search?sort=recent',
-  cta: 'Shop the sale',
+  eyebrow: 'Workspace planning',
+  title: 'Let’s design your office',
+  body: 'From space planning to furniture and professional installation, our team partners with you end to end.',
+  href: BRAND_CONTACT.whatsapp,
+  cta: 'Book a consultation',
 };
 
 export function PromoBanner() {
@@ -55,6 +56,9 @@ export function PromoBanner() {
                     href: banner.href ?? '',
                   })
                 }
+                {...(banner.href.startsWith('http')
+                  ? { target: '_blank', rel: 'noopener noreferrer' }
+                  : {})}
               >
                 <Button variant="primary" size="lg">
                   {banner.cta}

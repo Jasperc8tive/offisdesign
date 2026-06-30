@@ -6,6 +6,8 @@ import { AspectRatio, Button, Display, Stack, Text } from '@offisdesign/ui';
 import { useCmsPage } from '../../lib/hooks';
 import { findBlock, type Block } from './cms-block';
 import { Media } from '../media/media';
+import { STOCK } from '../../lib/media/stock';
+import { BRAND_CONTACT } from '../../lib/brand/contact';
 import { useAnalytics } from '../../lib/providers';
 
 interface StoryPayload {
@@ -19,12 +21,12 @@ interface StoryPayload {
 }
 
 const DEFAULT: StoryPayload = {
-  eyebrow: 'Our craft',
-  display: 'From workshop to home.',
-  title: 'A traceable supply chain, end to end.',
-  lead: 'FSC timber, washable linens, ten-year warranties. Made by hand in our Yorkshire workshop — and built to be repaired, not replaced.',
-  href: '/about',
-  cta: 'Read the story',
+  eyebrow: 'Why OFFISDESIGN',
+  display: 'More than furniture — environments that perform.',
+  title: 'From consultation to installation.',
+  lead: 'We partner with businesses to plan, furnish, and install offices that reflect ambition and support productivity — with attentive support long after handover.',
+  href: BRAND_CONTACT.whatsapp,
+  cta: 'Talk to our team',
 };
 
 export function BrandStory() {
@@ -39,7 +41,8 @@ export function BrandStory() {
         <AspectRatio ratio={4 / 3} className="bg-primary-subtle rounded-lg lg:aspect-[5/4]">
           <Media
             mediaId={story.mediaId}
-            alt={story.display ?? 'Offisdesign craft'}
+            src={STOCK.brandStory.src}
+            alt={STOCK.brandStory.alt}
             sizes="(min-width: 1024px) 50vw, 100vw"
           />
         </AspectRatio>
@@ -69,6 +72,9 @@ export function BrandStory() {
                     href: story.href ?? '',
                   })
                 }
+                {...(story.href.startsWith('http')
+                  ? { target: '_blank', rel: 'noopener noreferrer' }
+                  : {})}
               >
                 <Button
                   variant="outline"

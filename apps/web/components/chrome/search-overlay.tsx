@@ -10,7 +10,13 @@ import { useAutocomplete } from '../../lib/hooks';
 import { useAnalytics } from '../../lib/providers';
 import { useRecentSearches } from '../../lib/local-store/recent-searches';
 
-const EMPTY_SUGGESTIONS = ['Sofas', 'Dining tables', 'Walnut', 'Workspace', 'Storage'];
+const EMPTY_SUGGESTIONS = [
+  'Executive desks',
+  'Ergonomic chairs',
+  'Workstations',
+  'Conference tables',
+  'Reception',
+];
 
 export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();

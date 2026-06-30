@@ -17,8 +17,8 @@ export function FeaturedCategories() {
   return (
     <SectionShell
       id="categories"
-      eyebrow="Shop by room"
-      title="Spaces for every part of home and work."
+      eyebrow="Shop by workspace"
+      title="Furniture for every part of the modern office."
     >
       <div className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-4 md:gap-6">
         {isLoading

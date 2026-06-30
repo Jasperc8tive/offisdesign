@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Cluster, Container, Grid, Heading, Stack, Text } from '@offisdesign/ui';
 import { useNavigation } from '../../lib/hooks';
+import { BRAND_CONTACT } from '../../lib/brand/contact';
 import { useAnalytics } from '../../lib/providers';
 
 interface NavGroup {
@@ -29,11 +30,34 @@ export function Footer() {
           <p className="font-display text-h3 text-secondary uppercase tracking-[0.12em]">
             Offisdesign
           </p>
-          <Heading level={4}>Built in Britain. Made to outlast.</Heading>
+          <Heading level={4}>Lagos&rsquo;s premium office workspace brand.</Heading>
           <Text tone="muted">
-            FSC timber, traceable supply chains, ten-year warranties. Designed for everyday life,
-            not for landfill.
+            Premium office furniture, workspace planning, and interior fit-out — designed for
+            productivity and built for durability.
           </Text>
+          <Stack gap={2} className="pt-2">
+            <Text size="sm" tone="muted">
+              {BRAND_CONTACT.address}
+            </Text>
+            <Cluster gap={4} align="center">
+              <a
+                href={BRAND_CONTACT.whatsapp}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-body text-body-sm text-primary rounded-sm underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none"
+              >
+                WhatsApp {BRAND_CONTACT.whatsappDisplay}
+              </a>
+              <a
+                href={BRAND_CONTACT.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-body text-body-sm text-primary rounded-sm underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none"
+              >
+                Instagram {BRAND_CONTACT.instagramHandle}
+              </a>
+            </Cluster>
+          </Stack>
         </div>
       </Container>
 
@@ -76,7 +100,7 @@ export function Footer() {
         <Container className="py-4">
           <Cluster justify="between" align="center" wrap>
             <Text size="caption" tone="muted">
-              © {new Date().getFullYear()} Offisdesign · Built in Britain
+              © {new Date().getFullYear()} OFFISDESIGN · Lagos, Nigeria
             </Text>
             <Cluster gap={2} align="center">
               {PAYMENT_METHODS.map((method) => (

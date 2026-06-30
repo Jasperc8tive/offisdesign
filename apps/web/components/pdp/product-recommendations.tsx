@@ -33,7 +33,7 @@ export function ProductRecommendations({ title, kinds, links, location, max = 4 
         slug: l.to.slug,
         name: l.to.name,
         fromAmount: variant?.priceAmount ?? null,
-        currency: variant?.priceCurrency ?? 'GBP',
+        currency: variant?.priceCurrency ?? 'NGN',
         ...(variant?.compareAtAmount ? { compareAtAmount: variant.compareAtAmount } : {}),
       };
     })

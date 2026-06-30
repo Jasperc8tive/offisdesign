@@ -12,9 +12,9 @@ export const size = { width: 1200, height: 630 };
  */
 export default async function ProductOgImage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  let name = 'Offisdesign';
+  let name = 'OFFISDESIGN';
   let price = '';
-  let brand = 'Built in Britain';
+  let brand = 'Workspace solutions';
 
   try {
     const product = await catalogService.product(slug);
@@ -22,8 +22,12 @@ export default async function ProductOgImage({ params }: { params: Promise<{ slu
     if (product.brand) brand = product.brand;
     const variant = product.variants[0];
     if (variant) {
-      const major = (variant.priceAmount / 100).toFixed(0);
-      price = `From £${major}`;
+      const formatted = new Intl.NumberFormat('en-NG', {
+        style: 'currency',
+        currency: variant.priceCurrency || 'NGN',
+        maximumFractionDigits: 0,
+      }).format(variant.priceAmount / 100);
+      price = `From ${formatted}`;
     }
   } catch {
     // Use defaults; the fetch may fail at build time.
@@ -70,7 +74,7 @@ export default async function ProductOgImage({ params }: { params: Promise<{ slu
         }}
       >
         <div>offisdesign.com</div>
-        <div>Furniture made to outlast trends</div>
+        <div>Where better work begins</div>
       </div>
     </div>,
     { width: size.width, height: size.height },

@@ -39,6 +39,7 @@ import { JsonLd } from '../../../../components/seo/json-ld';
 import { breadcrumbJsonLd, productJsonLd } from '../../../../components/seo/schemas';
 import { Reveal } from '../../../../components/motion/reveal';
 import { resolveMediaUrl } from '../../../../lib/media/url';
+import { ConsultationCta } from '../../../../components/marketing/consultation-cta';
 
 export function ProductDetail({ slug }: { slug: string }) {
   const router = useRouter();
@@ -221,9 +222,16 @@ export function ProductDetail({ slug }: { slug: string }) {
             </Button>
           </div>
 
-          <Alert variant="info" title="Delivery 3–5 weeks">
-            Free UK delivery on orders over £500.
+          <Alert variant="info" title="Delivery & installation across Nigeria">
+            Lead times vary by item. Ask us about bulk and project orders.
           </Alert>
+
+          <ConsultationCta
+            location="pdp"
+            label="Furnishing an office? Request a consultation"
+            variant="link"
+            size="sm"
+          />
         </Stack>
       </Grid>
 
@@ -259,7 +267,7 @@ export function ProductDetail({ slug }: { slug: string }) {
       <Reveal>
         <Stack gap={12}>
           <ProductRecommendations
-            title="Pairs well with"
+            title="Complete the workspace"
             kinds={['CROSS_SELL', 'UP_SELL', 'RELATED']}
             links={data.linksFrom}
             location="pdp_recommendations"

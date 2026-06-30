@@ -14,7 +14,7 @@ export function FeaturedCollections() {
   if (!isLoading && (!data || data.data.length === 0)) return null;
 
   return (
-    <SectionShell id="collections" eyebrow="Featured collections" title="Curated sets.">
+    <SectionShell id="collections" eyebrow="Collections" title="Curated for the way you work.">
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
         {isLoading
           ? Array.from({ length: 3 }).map((_, i) => (

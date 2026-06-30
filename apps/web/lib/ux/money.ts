@@ -1,8 +1,8 @@
 /**
- * Format minor units (pence) as currency for display. Mirrors the PriceTag
+ * Format minor units (e.g. kobo) as currency for display. Mirrors the PriceTag
  * component's logic so server-rendered totals match client.
  */
-export function formatMoney(amount: number, currency = 'GBP', locale = 'en-GB'): string {
+export function formatMoney(amount: number, currency = 'NGN', locale = 'en-NG'): string {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,

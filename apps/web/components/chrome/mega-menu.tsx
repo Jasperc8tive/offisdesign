@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { Container } from '@offisdesign/ui';
+import { Media } from '../media/media';
 
 export interface MegaMenuFeatured {
   eyebrow?: string;
@@ -10,6 +11,8 @@ export interface MegaMenuFeatured {
   lead?: string;
   href: string;
   cta: string;
+  imageSrc?: string;
+  imageAlt?: string;
 }
 
 interface Props {
@@ -58,7 +61,11 @@ export function MegaMenu({ label, items, featured, onClose, onMouseEnter, onMous
 
             {/* Featured callout — image slot ready for CMS photography */}
             <div className="flex flex-1 items-start gap-8 pt-1">
-              <div className="bg-surface h-44 w-56 shrink-0 rounded-md" />
+              <div className="bg-surface relative h-44 w-56 shrink-0 overflow-hidden rounded-md">
+                {featured.imageSrc && (
+                  <Media src={featured.imageSrc} alt={featured.imageAlt ?? ''} sizes="224px" />
+                )}
+              </div>
               <div className="space-y-3">
                 {featured.eyebrow && (
                   <p className="text-muted font-body text-caption uppercase tracking-widest">
@@ -72,6 +79,9 @@ export function MegaMenu({ label, items, featured, onClose, onMouseEnter, onMous
                 <Link
                   href={featured.href}
                   onClick={onClose}
+                  {...(featured.href.startsWith('http')
+                    ? { target: '_blank', rel: 'noopener noreferrer' }
+                    : {})}
                   className="text-primary font-body text-body-sm focus-visible:ring-primary inline-flex items-center gap-1.5 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2"
                 >
                   {featured.cta}

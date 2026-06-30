@@ -32,7 +32,7 @@ export function RelatedProducts({ title, collection, excludeProductId }: Props) 
         slug: p.slug,
         name: p.name,
         fromAmount: variant?.priceAmount ?? null,
-        currency: variant?.priceCurrency ?? 'GBP',
+        currency: variant?.priceCurrency ?? 'NGN',
         mediaId: p.media[0]?.mediaId ?? null,
         ...(variant?.compareAtAmount ? { compareAtAmount: variant.compareAtAmount } : {}),
       };

@@ -14,16 +14,16 @@ import { JsonLd } from '../../components/seo/json-ld';
 import { homepageOrgJsonLd } from '../../components/seo/schemas';
 
 export const metadata: Metadata = {
-  title: 'Offisdesign — Furniture made to outlast trends',
+  title: 'Office Furniture & Workspace Solutions in Lagos',
   description:
-    'Solid timber, traceable supply chains, ten-year warranties. Designed for everyday life — built in Britain.',
+    'OFFISDESIGN designs, furnishes, and installs productive offices in Lagos, Nigeria — executive desks, ergonomic chairs, workstations, conference tables, reception, and full workspace planning.',
   alternates: { canonical: '/' },
   openGraph: {
-    title: 'Offisdesign',
-    description: 'Furniture made to outlast trends.',
+    title: 'OFFISDESIGN — Office Furniture & Workspace Solutions',
+    description: 'Premium office furniture and workspace solutions in Lagos, Nigeria.',
     type: 'website',
   },
-  twitter: { card: 'summary_large_image', title: 'Offisdesign' },
+  twitter: { card: 'summary_large_image', title: 'OFFISDESIGN' },
 };
 
 /**
