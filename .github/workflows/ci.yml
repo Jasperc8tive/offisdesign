@@ -56,6 +56,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
       - run: pnpm install --frozen-lockfile
+      # lint/typecheck go through turbo's `^build`, which builds @offisdesign/database
+      # (its `tsc` imports @prisma/client). Generate the client first, as the
+      # test/build jobs do, or the dependency build — and this job — fails.
+      - run: pnpm --filter @offisdesign/database db:generate
       - run: pnpm format:check
       - run: pnpm lint
 
@@ -79,6 +83,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
       - run: pnpm install --frozen-lockfile
+      # Generate the Prisma client so the `^build` of @offisdesign/database
+      # (and database's own typecheck) can resolve @prisma/client types.
+      - run: pnpm --filter @offisdesign/database db:generate
       - run: pnpm typecheck
 
   test:
@@ -152,6 +159,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
       - run: pnpm install --frozen-lockfile
+      # storybook:build bypasses turbo's `^build`, so the Tailwind preset at
+      # @offisdesign/config/dist/tailwind-preset.js is never built. Build it first.
+      - run: pnpm --filter @offisdesign/config build
       - run: pnpm storybook:build
 
   build:
