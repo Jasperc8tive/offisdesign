@@ -27,7 +27,7 @@ export default function AdminLoginPage() {
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const next = params?.get('next') ?? '/';
+  const next = safeNext(params?.get('next'));
   const { login, isAuthenticated, isLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -94,4 +94,12 @@ function LoginForm() {
       </Card>
     </main>
   );
+}
+
+/** Only same-origin paths: `/orders` yes; `https://...`, `//evil`, `/\evil` no. */
+function safeNext(next: string | null | undefined): string {
+  if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) {
+    return '/';
+  }
+  return next;
 }
