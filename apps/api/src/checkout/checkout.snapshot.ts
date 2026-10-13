@@ -1,6 +1,12 @@
 import { createHash } from 'node:crypto';
 
 /**
+ * Largest amount (minor units) the money columns can hold — they are int4
+ * until the planned BigInt migration. ≈ ₦21.47M.
+ */
+export const MAX_MONEY = 2_147_483_647;
+
+/**
  * Priced cart lines frozen on the checkout session at review time. The order
  * is built from this snapshot, never from the live cart, so what the customer
  * reviewed is exactly what they pay for and what the order contains.

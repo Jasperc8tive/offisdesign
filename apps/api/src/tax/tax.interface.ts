@@ -14,6 +14,8 @@ export interface TaxRequest {
   currency: string;
   lines: TaxableLine[];
   shippingAmount: number;
+  /** Order-level discount (minor units); goods are taxed after it is applied. */
+  discountAmount?: number;
   destinationCountry: string;
   destinationRegion?: string;
 }

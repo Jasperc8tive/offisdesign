@@ -31,7 +31,7 @@ export const discountPatchSchema = discountObject.partial();
 export type DiscountPatch = z.infer<typeof discountPatchSchema>;
 
 export const quoteRequestSchema = z.object({
-  currency: z.string().length(3).default('GBP'),
+  currency: z.string().length(3).default('NGN'),
   lines: z
     .array(
       z.object({

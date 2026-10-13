@@ -85,6 +85,17 @@ controls _which_ deployment we're in. The two are independent.
 | ----------------- | ------- | -------------------------- |
 | `OPENAPI_ENABLED` | `true`  | Mounts `/docs` Swagger UI. |
 
+### Tax and shipping
+
+All amounts are minor units (kobo, ₦ × 100).
+
+| Key                          | Default | Purpose                                                              |
+| ---------------------------- | ------- | -------------------------------------------------------------------- |
+| `TAX_FLAT_RATE_BPS`          | `750`   | Flat VAT in basis points (7.5%). Goods are taxed after discounts.    |
+| `SHIPPING_FLAT_AMOUNT`       | `0`     | Standard delivery price.                                             |
+| `SHIPPING_FREE_THRESHOLD`    | unset   | Subtotal at or above which standard delivery is free. Unset = never. |
+| `SHIPPING_EXPRESS_SURCHARGE` | `0`     | Added to standard for Express. `0` hides the Express option.         |
+
 ### Seed
 
 | Key                         | Default                   | Purpose                   |
@@ -106,3 +117,17 @@ controls _which_ deployment we're in. The two are independent.
 `loadApiEnv()` runs at boot. On failure, the process exits with a multi-line
 report listing every missing/invalid key. There is no implicit fallback — the
 schema is the contract.
+
+Boolean flags accept `true/false`, `1/0`, `yes/no` and `on/off` (any case);
+anything else is rejected rather than read as `false`. `APP_ENV=production`
+is accepted as an alias of `prod`.
+
+In production (`APP_ENV=prod` or `NODE_ENV=production`) the API also refuses
+to boot unless:
+
+- `PAYMENT_PROVIDER` is not `mock`
+- `COOKIE_SECURE=true` and `COOKIE_DOMAIN` is set
+- `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` differ and neither looks like a
+  placeholder (`change-me`, `REPLACE…`, `example`, `placeholder`)
+- `STORAGE_DRIVER=s3` and `EMAIL_TRANSPORT=smtp`
+- `OPENAPI_ENABLED=false`

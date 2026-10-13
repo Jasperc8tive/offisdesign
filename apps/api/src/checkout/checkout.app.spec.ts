@@ -9,7 +9,11 @@ import { FlatShippingService } from '../shipping/flat-shipping.service';
  * repositories, Prisma, inventory, pricing and tax are minimal fakes.
  */
 function harness() {
-  const env = { CHECKOUT_TTL_MIN: 30, SHIPPING_FLAT_AMOUNT: 2_500 } as unknown as ApiEnv;
+  const env = {
+    CHECKOUT_TTL_MIN: 30,
+    SHIPPING_FLAT_AMOUNT: 2_500,
+    SHIPPING_EXPRESS_SURCHARGE: 1_500,
+  } as unknown as ApiEnv;
   const cart = {
     id: 'cart-1',
     status: 'ACTIVE',
@@ -142,6 +146,8 @@ function harness() {
     payment,
     prisma,
     tx,
+    tax,
+    pricing,
     toPayment,
   };
 }
@@ -249,6 +255,35 @@ describe('CheckoutApplicationService', () => {
       sessionId,
       expect.objectContaining({ actualAmount: 1 }),
     );
+  });
+
+  it('taxes goods after the discount', async () => {
+    const h = harness();
+    h.pricing.quote.mockImplementationOnce(async () => ({
+      subtotal: 20_000,
+      discount: 5_000,
+      total: 15_000,
+    }));
+    await h.toPayment();
+    expect(h.tax.calculate).toHaveBeenLastCalledWith(
+      expect.objectContaining({ discountAmount: 5_000 }),
+    );
+  });
+
+  it('stops orders too large for the money columns before any payment', async () => {
+    const h = harness();
+    h.cart.items[0]!.unitAmount = 1_000_000_000; // ₦10M each × 3 > int4
+    h.cart.items[0]!.quantity = 3;
+    const session = await h.app.start('cart-1', 'buyer@example.ng');
+    await h.app.setShippingAddress(session.id, { countryCode: 'NG', postcode: '1' } as never);
+    await h.app.setShippingMethod(session.id, { rateId: 'standard' });
+    await expect(h.app.computeReview(session.id)).rejects.toMatchObject({
+      response: { code: 'ORDER_TOO_LARGE' },
+    });
+    expect(h.sessions.get(session.id).cartSnapshot).toBeNull();
+    await expect(h.app.createPaymentIntent(session.id)).rejects.toMatchObject({
+      response: { code: 'NO_TOTAL' },
+    });
   });
 
   it('rejects a payment ref that is not the session intent', async () => {

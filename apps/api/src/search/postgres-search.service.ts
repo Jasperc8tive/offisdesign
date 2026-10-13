@@ -103,7 +103,7 @@ export class PostgresSearchService implements SearchService {
       description: p.description,
       status: p.status,
       fromAmount: p.variants[0]?.priceAmount ?? null,
-      currency: p.variants[0]?.priceCurrency ?? 'GBP',
+      currency: p.variants[0]?.priceCurrency ?? 'NGN',
       collectionSlugs: p.collections.map((c) => c.collection.slug),
       categorySlugs: p.categories.map((c) => c.category.slug),
       tagSlugs: p.tags.map((t) => t.tag.slug),

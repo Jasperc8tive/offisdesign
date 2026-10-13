@@ -40,7 +40,7 @@ export const createVariantSchema = z.object({
   name: z.string().max(200).optional(),
   barcode: z.string().max(64).optional(),
   priceAmount: z.number().int().min(0),
-  priceCurrency: z.string().length(3).default('GBP'),
+  priceCurrency: z.string().length(3).default('NGN'),
   compareAtAmount: z.number().int().min(0).optional(),
   weightGrams: z.number().int().min(0).optional(),
   isDefault: z.boolean().default(false),

@@ -7,6 +7,7 @@ import { Lock } from 'lucide-react';
 import { Alert, Cluster, FormField, Heading, Input, Stack, Text } from '@offisdesign/ui';
 import { AddressForm, type AddressValue } from '../../../components/checkout/address-form';
 import { OrderSummary } from '../../../components/checkout/order-summary';
+import { ConsultationCta } from '../../../components/marketing/consultation-cta';
 import { PaymentStep } from '../../../components/checkout/payment-step';
 import { ReviewStep } from '../../../components/checkout/review-step';
 import { ShippingMethodStep } from '../../../components/checkout/shipping-method-step';
@@ -66,6 +67,12 @@ function CheckoutContent() {
     totalAmount: number;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+
+  function showError(err: unknown) {
+    setError(ApiError.is(err) ? err.message : (err as Error).message);
+    setErrorCode(ApiError.is(err) ? err.code : null);
+  }
 
   const startCheckout = useStartCheckout();
   const setAddress = useSetShippingAddress(sessionId ?? '');
@@ -95,6 +102,7 @@ function CheckoutContent() {
     if (!returnedSession || !returnedIntent || placingRef.current) return;
     if (redirectStatus !== 'succeeded') {
       setError('Your payment was not completed. Please try again.');
+      setErrorCode(null);
       return;
     }
     placingRef.current = true;
@@ -107,7 +115,7 @@ function CheckoutContent() {
       .catch((err: unknown) => {
         placingRef.current = false;
         setFinalising(false);
-        setError(ApiError.is(err) ? err.message : (err as Error).message);
+        showError(err);
       });
   }, [returnedSession, returnedIntent, redirectStatus]);
 
@@ -145,7 +153,7 @@ function CheckoutContent() {
       setBillingAddress(billing);
       setStep('shipping');
     } catch (err) {
-      setError(ApiError.is(err) ? err.message : (err as Error).message);
+      showError(err);
     }
   }
 
@@ -166,7 +174,7 @@ function CheckoutContent() {
       // total is unchanged): don't ask for the card again.
       setStep(intent.status === 'succeeded' ? 'review' : 'payment');
     } catch (err) {
-      setError(ApiError.is(err) ? err.message : (err as Error).message);
+      showError(err);
     }
   }
 
@@ -205,7 +213,7 @@ function CheckoutContent() {
       goToConfirmation(order);
     } catch (err) {
       placingRef.current = false;
-      setError(ApiError.is(err) ? err.message : (err as Error).message);
+      showError(err);
     }
   }
 
@@ -220,6 +228,9 @@ function CheckoutContent() {
         <section aria-label="Checkout">
           <Stack gap={6}>
             {error && <Alert variant="error">{error}</Alert>}
+            {error && errorCode === 'ORDER_TOO_LARGE' && (
+              <ConsultationCta location="checkout" label="Request a quote" />
+            )}
             {step === 'address' && (
               <Stack gap={6}>
                 {!auth.isAuthenticated && (

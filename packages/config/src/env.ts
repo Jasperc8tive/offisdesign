@@ -7,7 +7,14 @@ import { z } from 'zod';
  */
 const baseSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  APP_ENV: z.enum(['local', 'dev', 'staging', 'prod']).default('local'),
+  // `production`/`development` are accepted as aliases so the common spelling
+  // doesn't crash the process at boot.
+  APP_ENV: z
+    .preprocess(
+      (v) => (v === 'production' ? 'prod' : v === 'development' ? 'dev' : v),
+      z.enum(['local', 'dev', 'staging', 'prod']),
+    )
+    .default('local'),
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
 });
 
@@ -28,9 +35,18 @@ export function loadEnv<T extends z.ZodRawShape>(extras?: T): AppEnv<T> {
 // API-specific schema (apps/api). Exported so other tooling can reuse it.
 // ──────────────────────────────────────────────────────────────────────────
 
-const boolish = z
-  .union([z.boolean(), z.string()])
-  .transform((v) => (typeof v === 'boolean' ? v : v === 'true'));
+const TRUTHY = ['true', '1', 'yes', 'on'];
+const FALSY = ['false', '0', 'no', 'off'];
+
+/** Boolean env flag. Unknown spellings are rejected rather than read as false. */
+const boolish = z.union([z.boolean(), z.string()]).transform((v, ctx) => {
+  if (typeof v === 'boolean') return v;
+  const s = v.trim().toLowerCase();
+  if (TRUTHY.includes(s)) return true;
+  if (FALSY.includes(s)) return false;
+  ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Expected a boolean, got "${v}"` });
+  return z.NEVER;
+});
 
 export const apiEnvShape = {
   // Server
@@ -103,11 +119,16 @@ export const apiEnvShape = {
 
   // Tax — provider toggle. Mock = flat rate.
   TAX_PROVIDER: z.enum(['flat', 'external']).default('flat'),
-  TAX_FLAT_RATE_BPS: z.coerce.number().int().min(0).max(10_000).default(2000), // 20% VAT
+  TAX_FLAT_RATE_BPS: z.coerce.number().int().min(0).max(10_000).default(750), // 7.5% NG VAT
 
   // Shipping — provider toggle.
   SHIPPING_PROVIDER: z.enum(['flat', 'external']).default('flat'),
+  // All shipping amounts are in minor units (kobo).
   SHIPPING_FLAT_AMOUNT: z.coerce.number().int().min(0).default(0),
+  /** Subtotal at or above which standard delivery is free. Unset = never free. */
+  SHIPPING_FREE_THRESHOLD: z.coerce.number().int().min(0).optional(),
+  /** Added to standard for express delivery. 0 = express not offered. */
+  SHIPPING_EXPRESS_SURCHARGE: z.coerce.number().int().min(0).default(0),
 
   // Cart / checkout TTLs
   CART_TTL_DAYS: z.coerce.number().int().positive().default(30),
@@ -117,12 +138,18 @@ export const apiEnvShape = {
 
 export type ApiEnv = AppEnv<typeof apiEnvShape>;
 
+/** Values that are clearly copied from an example file rather than generated. */
+const PLACEHOLDER_SECRET = /change-?me|replace|example|placeholder|secret-secret/i;
+
 /**
  * Conditional requirements that can't be expressed per-field:
  *   - PAYMENT_PROVIDER=stripe ⇒ STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET
  *   - STORAGE_DRIVER=s3      ⇒ S3_BUCKET + S3_REGION + S3_ACCESS_KEY_ID + S3_SECRET_ACCESS_KEY
  *   - EMAIL_TRANSPORT=smtp   ⇒ SMTP_HOST + SMTP_PORT + SMTP_USER + SMTP_PASSWORD
  *   - RATE_LIMIT_AUTH must be < RATE_LIMIT_DEFAULT
+ *   - production (APP_ENV=prod or NODE_ENV=production) fails closed: real
+ *     payments, secure cookies, distinct non-placeholder JWT secrets, S3
+ *     storage, SMTP email and no public OpenAPI docs
  * These are checked at boot so a misconfigured deploy fails immediately
  * rather than at the first customer transaction.
  */
@@ -157,8 +184,36 @@ function assertApiInvariants(env: ApiEnv): void {
     );
   }
 
-  if (env.NODE_ENV === 'production' && !env.COOKIE_DOMAIN) {
-    missing.push('COOKIE_DOMAIN (required in production so cross-subdomain auth works)');
+  const isProd = env.APP_ENV === 'prod' || env.NODE_ENV === 'production';
+  if (isProd) {
+    if (!env.COOKIE_DOMAIN) {
+      missing.push('COOKIE_DOMAIN (required in production so cross-subdomain auth works)');
+    }
+    if (env.PAYMENT_PROVIDER === 'mock') {
+      missing.push(
+        'PAYMENT_PROVIDER (mock is not allowed in production — orders would not be charged)',
+      );
+    }
+    if (!env.COOKIE_SECURE) {
+      missing.push('COOKIE_SECURE (must be true in production)');
+    }
+    if (env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET) {
+      missing.push('JWT_REFRESH_SECRET (must differ from JWT_ACCESS_SECRET in production)');
+    }
+    for (const key of ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'] as const) {
+      if (PLACEHOLDER_SECRET.test(env[key])) {
+        missing.push(`${key} (looks like a placeholder — generate a random secret)`);
+      }
+    }
+    if (env.STORAGE_DRIVER !== 's3') {
+      missing.push('STORAGE_DRIVER (must be s3 in production — local disk is lost on redeploy)');
+    }
+    if (env.EMAIL_TRANSPORT !== 'smtp') {
+      missing.push('EMAIL_TRANSPORT (must be smtp in production — log drops customer email)');
+    }
+    if (env.OPENAPI_ENABLED) {
+      missing.push('OPENAPI_ENABLED (must be false in production)');
+    }
   }
 
   if (missing.length > 0) {
