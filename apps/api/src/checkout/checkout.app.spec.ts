@@ -16,6 +16,8 @@ function harness() {
   } as unknown as ApiEnv;
   const cart = {
     id: 'cart-1',
+    customerId: null as string | null,
+    anonymousId: 'anon-1' as string | null,
     status: 'ACTIVE',
     currency: 'NGN',
     appliedCoupon: null as string | null,
@@ -90,6 +92,12 @@ function harness() {
     cart: { update: jest.fn(async () => undefined) },
   };
   const prisma = {
+    checkoutSession: {
+      findUnique: jest.fn(async (args: { where: { orderId: string } }) => {
+        const s = [...sessions.values()].find((x) => x.orderId === args.where.orderId);
+        return s ? { cartId: s.cartId } : null;
+      }),
+    },
     $transaction: jest.fn(async (fn: (t: typeof tx) => Promise<unknown>) => fn(tx)),
     productVariant: {
       findMany: jest.fn(async () => [
@@ -283,6 +291,68 @@ describe('CheckoutApplicationService', () => {
     expect(h.sessions.get(session.id).cartSnapshot).toBeNull();
     await expect(h.app.createPaymentIntent(session.id)).rejects.toMatchObject({
       response: { code: 'NO_TOTAL' },
+    });
+  });
+
+  describe('ownership', () => {
+    it('lets the anonymous cart owner act on the checkout and nobody else', async () => {
+      const h = harness();
+      const session = await h.app.start('cart-1', 'buyer@example.ng');
+      await expect(
+        h.app.assertAccess(session.id, { anonymousId: 'anon-1' }),
+      ).resolves.toBeUndefined();
+      for (const stranger of [{ anonymousId: 'anon-2' }, { customerId: 'cust-9' }, {}]) {
+        await expect(h.app.assertAccess(session.id, stranger)).rejects.toMatchObject({
+          status: 404,
+        });
+      }
+      await expect(
+        h.app.assertAccess('no-such-id', { anonymousId: 'anon-1' }),
+      ).rejects.toMatchObject({
+        status: 404,
+      });
+    });
+
+    it('ties an account cart to its customer, not to any cookie', async () => {
+      const h = harness();
+      h.cart.customerId = 'cust-1';
+      const session = await h.app.start('cart-1', 'buyer@example.ng', 'cust-1');
+      await expect(
+        h.app.assertAccess(session.id, { customerId: 'cust-1' }),
+      ).resolves.toBeUndefined();
+      await expect(h.app.assertAccess(session.id, { anonymousId: 'anon-1' })).rejects.toMatchObject(
+        {
+          status: 404,
+        },
+      );
+    });
+
+    it('shows a guest order only to the cart cookie that placed it', async () => {
+      const h = harness();
+      const { sessionId } = await h.toPayment();
+      const order = await h.app.placeOrder(sessionId);
+      expect(await h.app.getOrder(order.id, { anonymousId: 'anon-1' })).toMatchObject({
+        id: order.id,
+      });
+      expect(await h.app.getOrder(order.id, { anonymousId: 'anon-2' })).toBeNull();
+      expect(await h.app.getOrder(order.id, { customerId: 'cust-9' })).toBeNull();
+    });
+
+    it('shows an account order only to its customer', async () => {
+      const h = harness();
+      h.cart.customerId = 'cust-1';
+      const session = await h.app.start('cart-1', 'buyer@example.ng', 'cust-1');
+      await h.app.setShippingAddress(session.id, { countryCode: 'NG', postcode: '1' } as never);
+      await h.app.setShippingMethod(session.id, { rateId: 'standard' });
+      await h.app.computeReview(session.id);
+      await h.app.createPaymentIntent(session.id);
+      const order = await h.app.placeOrder(session.id);
+      expect(await h.app.getOrder(order.id, { customerId: 'cust-1' })).toMatchObject({
+        id: order.id,
+      });
+      expect(
+        await h.app.getOrder(order.id, { customerId: 'cust-2', anonymousId: 'anon-1' }),
+      ).toBeNull();
     });
   });
 
