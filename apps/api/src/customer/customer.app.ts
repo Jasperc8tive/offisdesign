@@ -1,5 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CustomerDomainService } from './customer.domain';
+import { SessionService } from '../auth/session.service';
+import { toPublicCustomer, toPublicSession } from './customer.view';
 import { CustomerRepository } from './customer.repository';
 import { EventBus } from '../events/event-bus.service';
 import { EMAIL_ADAPTER, type EmailAdapter } from '../notifications/notifications.interface';
@@ -18,6 +20,7 @@ export class CustomerApplicationService {
   constructor(
     private readonly domain: CustomerDomainService,
     private readonly repo: CustomerRepository,
+    private readonly sessions: SessionService,
     private readonly events: EventBus,
     @Inject(EMAIL_ADAPTER) private readonly email: EmailAdapter,
     @Inject(API_ENV) private readonly env: ApiEnv,
@@ -30,7 +33,7 @@ export class CustomerApplicationService {
       email: customer.email,
     });
     await this.sendVerificationEmail(customer.email, verificationToken.raw);
-    return customer;
+    return toPublicCustomer(customer);
   }
 
   async verifyEmail(token: string) {
@@ -39,7 +42,7 @@ export class CustomerApplicationService {
       customerId: customer.id,
       email: customer.email,
     });
-    return customer;
+    return toPublicCustomer(customer);
   }
 
   async requestPasswordReset(email: string) {
@@ -51,19 +54,19 @@ export class CustomerApplicationService {
   }
 
   async completePasswordReset(input: CompletePasswordResetInput) {
-    return this.domain.completePasswordReset(input);
+    return toPublicCustomer(await this.domain.completePasswordReset(input));
   }
 
-  async changePassword(customerId: string, input: ChangePasswordInput) {
-    return this.domain.changePassword(customerId, input);
+  async changePassword(customerId: string, input: ChangePasswordInput, currentSessionId?: string) {
+    return toPublicCustomer(await this.domain.changePassword(customerId, input, currentSessionId));
   }
 
-  getProfile(customerId: string) {
-    return this.repo.findById(customerId);
+  async getProfile(customerId: string) {
+    return toPublicCustomer(await this.repo.findById(customerId));
   }
 
-  updateProfile(customerId: string, input: UpdateProfileInput) {
-    return this.domain.updateProfile(customerId, input);
+  async updateProfile(customerId: string, input: UpdateProfileInput) {
+    return toPublicCustomer(await this.domain.updateProfile(customerId, input));
   }
 
   listAddresses(customerId: string) {
@@ -82,20 +85,18 @@ export class CustomerApplicationService {
     return this.domain.deleteAddress(customerId, addressId);
   }
 
-  listSessions(customerId: string) {
-    return this.repo.listSessions(customerId);
+  async listSessions(customerId: string, currentSessionId?: string) {
+    const sessions = await this.repo.listSessions(customerId);
+    return sessions.map((s) => toPublicSession(s, currentSessionId));
   }
 
-  revokeSession(customerId: string, sessionId: string) {
-    return this.repo.listSessions(customerId).then(async (sessions) => {
-      const session = sessions.find((s) => s.id === sessionId);
-      if (!session) return null;
-      return this.repo.revokeSession(sessionId);
-    });
+  /** Revokes one of the customer's own sessions (and its refresh token). */
+  async revokeSession(customerId: string, sessionId: string) {
+    return { revoked: await this.sessions.revokeCustomerSession(customerId, sessionId) };
   }
 
-  deactivate(customerId: string) {
-    return this.domain.deactivate(customerId);
+  async deactivate(customerId: string) {
+    return toPublicCustomer(await this.domain.deactivate(customerId));
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────

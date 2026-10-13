@@ -95,7 +95,7 @@ export class CustomerController {
     @CurrentPrincipal() p: Principal,
     @Body(new ZodValidationPipe(changePasswordSchema)) body: ChangePasswordInput,
   ) {
-    await this.app.changePassword(p.id, body);
+    await this.app.changePassword(p.id, body, p.sessionId);
   }
 
   @Post('me/deactivate')
@@ -141,7 +141,7 @@ export class CustomerController {
   @Get('me/sessions')
   @UseGuards(JwtAuthGuard)
   listSessions(@CurrentPrincipal() p: Principal) {
-    return this.app.listSessions(p.id);
+    return this.app.listSessions(p.id, p.sessionId);
   }
 
   @Delete('me/sessions/:id')

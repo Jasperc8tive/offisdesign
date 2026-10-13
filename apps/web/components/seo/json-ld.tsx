@@ -6,7 +6,15 @@ export function JsonLd({ payload }: { payload: object | object[] }) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(payload) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(payload) }}
     />
   );
+}
+
+/**
+ * JSON for an inline <script>: escape `<` so content such as a product name
+ * containing `</script>` can't break out of the tag.
+ */
+export function serializeJsonLd(payload: object | object[]): string {
+  return JSON.stringify(payload).replace(/</g, '\\u003c');
 }

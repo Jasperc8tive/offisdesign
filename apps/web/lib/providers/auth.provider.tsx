@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { customerService } from '../api/services';
 import { cartService } from '../api/services/cart';
 import { ApiError } from '../api/errors';
@@ -44,6 +44,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch {
         // Non-fatal; the cart will reconcile on the next read.
       }
+      // Drop anything the previous visitor of a shared PC may have loaded.
+      removeUserScoped(queryClient);
       await queryClient.invalidateQueries({ queryKey: ['customer', 'me'] });
       await queryClient.invalidateQueries({ queryKey: ['cart'] });
     },
@@ -52,8 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logoutMutation = useMutation({
     mutationFn: () => customerService.logout(),
     onSuccess: async () => {
-      queryClient.removeQueries({ queryKey: ['customer'] });
-      queryClient.removeQueries({ queryKey: ['cart'] });
+      removeUserScoped(queryClient);
     },
   });
 
@@ -79,4 +80,11 @@ export function useAuth(): AuthContextValue {
   const ctx = React.useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>');
   return ctx;
+}
+
+/** Query keys holding one visitor's data (profile, cart, orders, checkout). */
+const USER_SCOPED_KEYS = [['customer'], ['cart'], ['orders'], ['order'], ['checkout']] as const;
+
+function removeUserScoped(queryClient: QueryClient) {
+  for (const queryKey of USER_SCOPED_KEYS) queryClient.removeQueries({ queryKey });
 }

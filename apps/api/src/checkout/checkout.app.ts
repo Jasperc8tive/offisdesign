@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
   Logger,
+  NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { CheckoutStatus, PaymentStatus, type Prisma } from '@offisdesign/database';
@@ -23,6 +24,12 @@ import { PrismaService } from '../prisma/prisma.service';
 import { generateOrderNumber } from './order-number';
 import { MAX_MONEY, buildSnapshot, cartFingerprint, readSnapshot } from './checkout.snapshot';
 import type { SetAddressInput, SetShippingMethodInput } from './dto/checkout.dto';
+
+/** Who is asking for a checkout or order: a signed-in customer and/or a cart cookie. */
+export interface CheckoutOwner {
+  customerId?: string;
+  anonymousId?: string;
+}
 
 const DEFAULT_WAREHOUSE_CODE = process.env.DEFAULT_WAREHOUSE_CODE ?? 'WH-MAIN';
 
@@ -47,6 +54,17 @@ export class CheckoutApplicationService {
     @Inject(SHIPPING_SERVICE) private readonly shipping: ShippingService,
     @Inject(PAYMENT_SERVICE) private readonly payment: PaymentService,
   ) {}
+
+  /**
+   * The requester must own the session's cart: its customer if the cart
+   * belongs to an account, otherwise the holder of its anonymous cookie.
+   * 404 (not 403) so session ids can't be probed.
+   */
+  async assertAccess(checkoutId: string, owner: CheckoutOwner) {
+    const session = await this.repo.findById(checkoutId);
+    const cart = session ? await this.carts.findById(session.cartId) : null;
+    if (!session || !cart || !ownsCart(cart, owner)) throw new NotFoundException();
+  }
 
   async start(cartId: string, email: string, customerId?: string) {
     const session = await this.domain.startOrResume(cartId, email, customerId);
@@ -475,11 +493,21 @@ export class CheckoutApplicationService {
     return { data, total, page, pageSize, totalPages: Math.max(1, Math.ceil(total / pageSize)) };
   }
 
-  async getOrder(orderId: string, customerId: string) {
+  /**
+   * Account orders are visible to their customer only. Guest orders are
+   * visible to the anonymous cart cookie that placed them.
+   */
+  async getOrder(orderId: string, owner: CheckoutOwner) {
     const order = await this.orders.findById(orderId);
     if (!order) return null;
-    if (order.customerId && order.customerId !== customerId) return null;
-    return order;
+    if (order.customerId) return order.customerId === owner.customerId ? order : null;
+    if (!owner.anonymousId) return null;
+    const session = await this.prisma.checkoutSession.findUnique({
+      where: { orderId },
+      select: { cartId: true },
+    });
+    const cart = session ? await this.carts.findById(session.cartId) : null;
+    return cart && !cart.customerId && cart.anonymousId === owner.anonymousId ? order : null;
   }
 
   /** Cron entry — expire stale sessions and release their reservations. */
@@ -498,4 +526,12 @@ export class CheckoutApplicationService {
     }
     return count;
   }
+}
+
+function ownsCart(
+  cart: { customerId: string | null; anonymousId: string | null },
+  owner: CheckoutOwner,
+): boolean {
+  if (cart.customerId) return cart.customerId === owner.customerId;
+  return !!cart.anonymousId && cart.anonymousId === owner.anonymousId;
 }

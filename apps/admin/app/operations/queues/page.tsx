@@ -41,12 +41,16 @@ export default function QueuesPage() {
           <Cluster gap={2}>
             <Button
               variant="outline"
-              onClick={() => flush.mutate('catalog')}
+              onClick={() => confirm('Flush the catalog cache?') && flush.mutate('catalog')}
               loading={flush.isPending}
             >
               Flush catalog cache
             </Button>
-            <Button variant="outline" onClick={() => flush.mutate('cms')} loading={flush.isPending}>
+            <Button
+              variant="outline"
+              onClick={() => confirm('Flush the CMS cache?') && flush.mutate('cms')}
+              loading={flush.isPending}
+            >
               Flush CMS cache
             </Button>
           </Cluster>
