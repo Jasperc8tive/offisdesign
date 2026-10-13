@@ -1,14 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Inject,
-  Param,
-  Patch,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -26,10 +16,15 @@ import {
 import { SettingsService, settingUpsertSchema, type SettingUpsertInput } from './settings.service';
 import { MaintenanceService } from './maintenance.service';
 import { CacheService } from '../redis/cache.service';
-import { RedisService } from '../redis/redis.service';
 import type { Principal } from '../auth/principal';
 
 const cacheBodySchema = z.object({ keys: z.array(z.string().min(1)).min(1).max(100) });
+
+/** Cache namespaces that may be flushed (see catalog.app.ts / cms.app.ts keys). */
+const CACHE_SCOPES = { catalog: 'cat:', cms: 'cms:' } as const;
+const cacheFlushSchema = z.object({
+  scope: z.enum(Object.keys(CACHE_SCOPES) as [keyof typeof CACHE_SCOPES]),
+});
 const maintenanceSchema = z.object({
   enabled: z.boolean(),
   message: z.string().max(280).optional(),
@@ -44,7 +39,6 @@ export class AdminOpsController {
     private readonly settings: SettingsService,
     private readonly maintenance: MaintenanceService,
     private readonly cache: CacheService,
-    @Inject(RedisService) private readonly redis: RedisService,
   ) {}
 
   // Feature flags
@@ -136,10 +130,16 @@ export class AdminOpsController {
     return { invalidated: body.keys.length };
   }
 
+  /**
+   * Flush one cache namespace. Never FLUSHDB: Redis also holds refresh
+   * tokens and BullMQ queues.
+   */
   @Post('cache/flush')
   @RequirePermissions('system:audit')
-  async flush() {
-    await this.redis.client.flushdb();
-    return { flushed: true };
+  async flush(
+    @Body(new ZodValidationPipe(cacheFlushSchema)) body: z.infer<typeof cacheFlushSchema>,
+  ) {
+    const deleted = await this.cache.deleteByPrefix(CACHE_SCOPES[body.scope]);
+    return { scope: body.scope, deleted };
   }
 }
