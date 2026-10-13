@@ -8,6 +8,7 @@ import type { Request } from 'express';
 import { TokenService } from './token.service';
 import { ACCESS_COOKIE } from './cookie.helper';
 import { PrismaService } from '../prisma/prisma.service';
+import { SessionService } from './session.service';
 import { getContext } from '../common/request-context';
 import type { Principal } from './principal';
 
@@ -24,6 +25,7 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly tokens: TokenService,
     private readonly prisma: PrismaService,
+    private readonly sessions: SessionService,
   ) {}
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
@@ -37,6 +39,16 @@ export class JwtAuthGuard implements CanActivate {
       payload = this.tokens.verifyAccess(token);
     } catch {
       throw new UnauthorizedException({ code: 'INVALID_TOKEN', message: 'Invalid access token' });
+    }
+
+    // Revocation (logout elsewhere, password change, deactivation) takes
+    // effect immediately rather than at access-token expiry.
+    const state = await this.sessions.state(payload.kind, payload.sid);
+    if (!state.active) {
+      throw new UnauthorizedException({
+        code: 'SESSION_REVOKED',
+        message: 'Session is no longer active',
+      });
     }
 
     let roles: string[] = [];

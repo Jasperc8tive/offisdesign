@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { PasswordService } from './password.service';
 import { TokenService, type IssuedTokens, type PrincipalKind } from './token.service';
 import { RefreshTokenStore } from '../redis/refresh-token.store';
+import { SessionService } from './session.service';
 
 interface LoginInput {
   email: string;
@@ -23,6 +24,7 @@ export class AuthService {
     private readonly passwords: PasswordService,
     private readonly tokens: TokenService,
     private readonly refreshStore: RefreshTokenStore,
+    private readonly sessions: SessionService,
   ) {}
 
   async loginAdmin(input: LoginInput): Promise<LoginResult> {
@@ -102,8 +104,9 @@ export class AuthService {
   }
 
   /**
-   * Verify the refresh token, ensure its JTI is still tracked in Redis,
-   * rotate to a new JTI, and update the session row.
+   * Verify the refresh token, atomically claim its JTI (so a token can be used
+   * once, even under concurrent requests), check the session and account are
+   * still active, then issue a rotated pair.
    */
   async refresh(
     refreshToken: string,
@@ -118,11 +121,19 @@ export class AuthService {
       });
     }
 
-    const tracked = await this.refreshStore.lookup(payload.jti);
-    if (!tracked || tracked !== payload.sid) {
+    const claimed = await this.refreshStore.claim(payload.jti);
+    if (!claimed || claimed !== payload.sid) {
       throw new UnauthorizedException({
         code: 'INVALID_REFRESH',
         message: 'Refresh token revoked',
+      });
+    }
+
+    const state = await this.sessions.state(payload.kind, payload.sid);
+    if (!state.active || state.currentJti !== payload.jti) {
+      throw new UnauthorizedException({
+        code: 'SESSION_REVOKED',
+        message: 'Session is no longer active',
       });
     }
 
@@ -140,12 +151,7 @@ export class AuthService {
         data: { refreshTokenJti: issued.refreshJti, expiresAt },
       });
     }
-    await this.refreshStore.rotate(
-      payload.jti,
-      issued.refreshJti,
-      payload.sid,
-      issued.refreshTtlSec,
-    );
+    await this.refreshStore.track(issued.refreshJti, payload.sid, issued.refreshTtlSec);
     return { ...issued, principal: { id: payload.sub, kind: payload.kind } };
   }
 

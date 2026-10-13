@@ -9,6 +9,7 @@ import { VerificationTokenKind } from '@offisdesign/database';
 import { uuidv7 } from 'uuidv7';
 import { CustomerRepository } from './customer.repository';
 import { PasswordService } from '../auth/password.service';
+import { SessionService } from '../auth/session.service';
 import { generateToken, hashToken } from './token.helper';
 import type {
   AddressInput,
@@ -31,6 +32,7 @@ export class CustomerDomainService {
   constructor(
     private readonly repo: CustomerRepository,
     private readonly passwords: PasswordService,
+    private readonly sessions: SessionService,
   ) {}
 
   async register(input: RegisterInput) {
@@ -80,18 +82,23 @@ export class CustomerDomainService {
     const record = await this.consumeToken(input.token, VerificationTokenKind.PASSWORD_RESET);
     const passwordHash = await this.passwords.hash(input.password);
     await this.repo.update(record.customerId, { passwordHash });
-    // Revoke all sessions on password change.
-    await this.repo.revokeAllSessions(record.customerId);
+    // A reset means the old password may be compromised: end every session.
+    await this.sessions.revokeCustomerSessions(record.customerId);
     return this.repo.findById(record.customerId);
   }
 
-  async changePassword(customerId: string, input: ChangePasswordInput) {
+  /** Changes the password and signs out every other session. */
+  async changePassword(customerId: string, input: ChangePasswordInput, currentSessionId?: string) {
     const customer = await this.repo.findById(customerId);
     if (!customer || !customer.passwordHash) throw new NotFoundException();
     const ok = await this.passwords.verify(input.currentPassword, customer.passwordHash);
     if (!ok) throw new UnauthorizedException({ code: 'INVALID_CREDENTIALS' });
     const passwordHash = await this.passwords.hash(input.newPassword);
     await this.repo.update(customerId, { passwordHash });
+    await this.sessions.revokeCustomerSessions(
+      customerId,
+      currentSessionId ? { except: currentSessionId } : {},
+    );
     return this.repo.findById(customerId);
   }
 
@@ -162,7 +169,7 @@ export class CustomerDomainService {
     const customer = await this.repo.findById(customerId);
     if (!customer) throw new NotFoundException();
     if (customer.deletedAt) return customer;
-    await this.repo.revokeAllSessions(customerId);
+    await this.sessions.revokeCustomerSessions(customerId);
     return this.repo.softDelete(customerId);
   }
 

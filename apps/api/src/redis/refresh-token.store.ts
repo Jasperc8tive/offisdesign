@@ -27,11 +27,19 @@ export class RefreshTokenStore {
     await this.redis.client.del(this.key(jti));
   }
 
-  /** Rotate: revoke the old jti and track the new one in one round trip. */
-  async rotate(oldJti: string, newJti: string, sessionId: string, ttlSec: number): Promise<void> {
-    const pipeline = this.redis.client.multi();
-    pipeline.del(this.key(oldJti));
-    pipeline.set(this.key(newJti), sessionId, 'EX', ttlSec);
-    await pipeline.exec();
+  async revokeMany(jtis: string[]): Promise<void> {
+    if (jtis.length === 0) return;
+    await this.redis.client.del(...jtis.map((j) => this.key(j)));
+  }
+
+  /**
+   * Atomically read-and-delete a JTI (MULTI GET + DEL), so of several
+   * concurrent refreshes with the same token exactly one gets the session id.
+   */
+  async claim(jti: string): Promise<string | null> {
+    const results = await this.redis.client.multi().get(this.key(jti)).del(this.key(jti)).exec();
+    const [getErr, value] = results?.[0] ?? [null, null];
+    if (getErr) throw getErr;
+    return (value as string | null) ?? null;
   }
 }

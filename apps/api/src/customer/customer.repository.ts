@@ -83,20 +83,6 @@ export class CustomerRepository {
     });
   }
 
-  revokeSession(id: string) {
-    return this.prisma.customerSession.update({
-      where: { id },
-      data: { revokedAt: new Date() },
-    });
-  }
-
-  revokeAllSessions(customerId: string) {
-    return this.prisma.customerSession.updateMany({
-      where: { customerId, revokedAt: null },
-      data: { revokedAt: new Date() },
-    });
-  }
-
   // ── Verification tokens ───────────────────────────────────────────────
 
   createToken(input: {
