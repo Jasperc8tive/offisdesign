@@ -22,19 +22,27 @@ const StripePaymentStep = dynamic(() => import('./payment-step-stripe'), {
 
 /**
  * Hides provider-specific surface area behind a single `<PaymentStep>` API.
- * When the API returns a Stripe `clientSecret` we lazy-load the Stripe Elements
- * island. When the API returns a mock provider (no clientSecret) we render a
- * fallback CTA that places the order directly.
+ * A Stripe intent with a `clientSecret` lazy-loads the Stripe Elements island.
+ * The mock provider gets a direct confirm CTA, outside production builds only.
+ * Anything else fails closed: no way to proceed without a real payment.
  */
 export function PaymentStep(props: Props) {
-  if (!props.clientSecret || !apiConfig.stripePublishableKey) {
+  if (props.provider === 'mock' && process.env.NODE_ENV !== 'production') {
     return (
       <Stack gap={3}>
         <Alert variant="info" title="Mock payment">
-          No Stripe credentials configured. Order will be placed without a real charge.
+          Development payment provider. Order will be placed without a real charge.
         </Alert>
         <Button onClick={() => props.onConfirmed(props.providerRef)}>Confirm payment</Button>
       </Stack>
+    );
+  }
+  if (props.provider !== 'stripe' || !props.clientSecret || !apiConfig.stripePublishableKey) {
+    return (
+      <Alert variant="error" title="Payment unavailable">
+        Payment is unavailable right now. Please try again shortly or contact us to complete your
+        order.
+      </Alert>
     );
   }
   return (

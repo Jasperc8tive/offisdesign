@@ -33,8 +33,8 @@ export class OrderRepository {
     ]);
   }
 
-  create(data: Prisma.OrderCreateInput) {
-    return this.prisma.order.create({ data, include: { items: true, payments: true } });
+  create(data: Prisma.OrderCreateInput, tx: Prisma.TransactionClient = this.prisma) {
+    return tx.order.create({ data, include: { items: true, payments: true } });
   }
 
   updateStatus(id: string, data: Prisma.OrderUpdateInput) {
@@ -45,14 +45,17 @@ export class OrderRepository {
     });
   }
 
-  appendEvent(input: {
-    id: string;
-    orderId: string;
-    kind: string;
-    payload: Prisma.InputJsonValue;
-    actorId?: string | undefined;
-  }) {
-    return this.prisma.orderEvent.create({
+  appendEvent(
+    input: {
+      id: string;
+      orderId: string;
+      kind: string;
+      payload: Prisma.InputJsonValue;
+      actorId?: string | undefined;
+    },
+    tx: Prisma.TransactionClient = this.prisma,
+  ) {
+    return tx.orderEvent.create({
       data: {
         id: input.id,
         orderId: input.orderId,
@@ -61,9 +64,5 @@ export class OrderRepository {
         ...(input.actorId !== undefined ? { actorId: input.actorId } : {}),
       },
     });
-  }
-
-  inTx<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
-    return this.prisma.$transaction(fn);
   }
 }

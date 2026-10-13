@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { Lock } from 'lucide-react';
 import { Alert, Cluster, FormField, Heading, Input, Stack, Text } from '@offisdesign/ui';
 import { AddressForm, type AddressValue } from '../../../components/checkout/address-form';
@@ -11,6 +12,7 @@ import { ReviewStep } from '../../../components/checkout/review-step';
 import { ShippingMethodStep } from '../../../components/checkout/shipping-method-step';
 import { StepIndicator } from '../../../components/checkout/step-indicator';
 import {
+  checkoutKeys,
   useCreatePaymentIntent,
   usePlaceOrder,
   useReviewCheckout,
@@ -22,12 +24,26 @@ import {
 import { useAnalytics, useAuth, useCart } from '../../../lib/providers';
 import { ApiError } from '../../../lib/api/errors';
 import { checkoutService } from '../../../lib/api/services/checkout';
-import type { ShippingRate } from '../../../lib/api/schemas';
+import type { Order, ShippingRate } from '../../../lib/api/schemas';
 
 type Step = 'address' | 'shipping' | 'payment' | 'review';
 
 export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<Text tone="muted">Loading checkout…</Text>}>
+      <CheckoutContent />
+    </Suspense>
+  );
+}
+
+function CheckoutContent() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  // Set while an order is being placed so the empty-cart redirect doesn't race
+  // the navigation to the confirmation page.
+  const placingRef = useRef(false);
+  const [finalising, setFinalising] = useState(false);
   const auth = useAuth();
   const { cart, itemCount, isLoading } = useCart();
   const { track } = useAnalytics();
@@ -57,15 +73,55 @@ export default function CheckoutPage() {
   const reviewCheckout = useReviewCheckout(sessionId ?? '');
   const createIntent = useCreatePaymentIntent(sessionId ?? '');
   const placeOrder = usePlaceOrder(sessionId ?? '');
-  const rates = useShippingRates(sessionId ?? undefined);
+  // Only quote once the address is saved (we're on the shipping step); the
+  // session exists earlier and the API rejects rates without an address.
+  const rates = useShippingRates(step === 'shipping' ? (sessionId ?? undefined) : undefined);
 
   useEffect(() => {
     if (auth.user?.email) setEmail((prev) => prev || auth.user!.email);
   }, [auth.user]);
 
   useEffect(() => {
-    if (!isLoading && itemCount === 0) router.replace('/cart');
+    if (!isLoading && itemCount === 0 && !placingRef.current) router.replace('/cart');
   }, [isLoading, itemCount, router]);
+
+  // Return from an off-session payment flow (3DS, wallets): Stripe redirects
+  // back with `payment_intent` + `redirect_status`; page state is gone, so
+  // place the order from the session id alone.
+  const returnedSession = searchParams.get('session');
+  const returnedIntent = searchParams.get('payment_intent');
+  const redirectStatus = searchParams.get('redirect_status');
+  useEffect(() => {
+    if (!returnedSession || !returnedIntent || placingRef.current) return;
+    if (redirectStatus !== 'succeeded') {
+      setError('Your payment was not completed. Please try again.');
+      return;
+    }
+    placingRef.current = true;
+    setFinalising(true);
+    checkoutService
+      .place(returnedSession, `co-${returnedSession}-${returnedIntent}`, {
+        paymentIntentRef: returnedIntent,
+      })
+      .then(goToConfirmation)
+      .catch((err: unknown) => {
+        placingRef.current = false;
+        setFinalising(false);
+        setError(ApiError.is(err) ? err.message : (err as Error).message);
+      });
+  }, [returnedSession, returnedIntent, redirectStatus]);
+
+  function goToConfirmation(order: Order) {
+    track('purchase', {
+      orderId: order.id,
+      value: order.totalAmount / 100,
+      currency: order.currency,
+    });
+    // Seed the cache: guests can't GET /orders/:id, so the confirmation page
+    // renders from the order returned by /place.
+    queryClient.setQueryData(checkoutKeys.order(order.id), order);
+    router.push(`/checkout/${order.id}/confirmation`);
+  }
 
   useEffect(() => {
     track('checkout_step_viewed', { step });
@@ -97,28 +153,38 @@ export default function CheckoutPage() {
     setError(null);
     if (!sessionId) return;
     try {
-      await setMethod.mutateAsync({
-        carrier: rate.carrier,
-        service: rate.service,
-        amount: rate.amount,
-        currency: rate.currency,
-      });
-      const review = await reviewCheckout.mutateAsync();
-      setQuote({
-        shippingAmount: review.session.shippingAmount,
-        taxAmount: review.session.taxAmount,
-        totalAmount: review.session.totalAmount,
-      });
-      const intent = await createIntent.mutateAsync();
+      // The server prices the rate; only its id is sent.
+      await setMethod.mutateAsync({ rateId: rate.id });
+      const intent = await reviewAndCreateIntent();
       setPaymentIntent({
         clientSecret: intent.clientSecret ?? null,
         providerRef: intent.providerRef,
         provider: intent.provider,
       });
       setSelectedRate(rate);
-      setStep('payment');
+      // Already paid (customer came back via "Edit" on the review step and the
+      // total is unchanged): don't ask for the card again.
+      setStep(intent.status === 'succeeded' ? 'review' : 'payment');
     } catch (err) {
       setError(ApiError.is(err) ? err.message : (err as Error).message);
+    }
+  }
+
+  /** Review then create the intent; if the cart changed in between, review once more. */
+  async function reviewAndCreateIntent() {
+    for (let attempt = 0; ; attempt++) {
+      const review = await reviewCheckout.mutateAsync();
+      setQuote({
+        shippingAmount: review.session.shippingAmount,
+        taxAmount: review.session.taxAmount,
+        totalAmount: review.session.totalAmount,
+      });
+      try {
+        return await createIntent.mutateAsync();
+      } catch (err) {
+        if (attempt === 0 && ApiError.is(err) && err.code === 'CHECKOUT_STALE') continue;
+        throw err;
+      }
     }
   }
 
@@ -130,22 +196,20 @@ export default function CheckoutPage() {
   async function handlePlaceOrder() {
     setError(null);
     if (!sessionId || !paymentIntent) return;
+    placingRef.current = true;
     try {
       const order = await placeOrder.mutateAsync({
         idempotencyKey: `co-${sessionId}-${paymentIntent.providerRef}`,
         paymentIntentRef: paymentIntent.providerRef,
       });
-      track('purchase', {
-        orderId: order.id,
-        value: order.totalAmount / 100,
-        currency: order.currency,
-      });
-      router.push(`/checkout/${order.id}/confirmation`);
+      goToConfirmation(order);
     } catch (err) {
+      placingRef.current = false;
       setError(ApiError.is(err) ? err.message : (err as Error).message);
     }
   }
 
+  if (finalising) return <Text tone="muted">Finalising your order…</Text>;
   if (isLoading || !cart) return <Text tone="muted">Loading checkout…</Text>;
 
   return (
@@ -205,7 +269,7 @@ export default function CheckoutPage() {
                 clientSecret={paymentIntent.clientSecret}
                 provider={paymentIntent.provider}
                 providerRef={paymentIntent.providerRef}
-                returnUrl={`${window.location.origin}/checkout/${sessionId}/confirmation`}
+                returnUrl={`${window.location.origin}/checkout?session=${encodeURIComponent(sessionId ?? '')}`}
                 onConfirmed={handlePaymentConfirmed}
               />
             )}

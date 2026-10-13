@@ -52,6 +52,10 @@ export interface WebhookEvent {
 export interface PaymentService {
   readonly provider: string;
   createIntent(input: CreateIntentInput): Promise<PaymentIntent>;
+  /** Fetch an existing intent, including its client secret. */
+  retrieve(providerRef: string): Promise<PaymentIntent>;
+  /** Re-price an intent that has not been paid yet. */
+  updateAmount(providerRef: string, amount: number): Promise<PaymentIntent>;
   confirm(providerRef: string): Promise<ConfirmedPayment>;
   refund(input: RefundInput): Promise<Refund>;
   /**

@@ -4,16 +4,23 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CheckoutStatus, type CheckoutSession } from '@offisdesign/database';
+import { CheckoutStatus, Prisma, type CheckoutSession } from '@offisdesign/database';
 import { uuidv7 } from 'uuidv7';
 import { CheckoutRepository } from './checkout.repository';
 import { CartRepository } from '../cart/cart.repository';
-import type { Prisma } from '@offisdesign/database';
+import type { CartSnapshot } from './checkout.snapshot';
 import type { ApiEnv } from '@offisdesign/config';
 import { Inject } from '@nestjs/common';
 import { API_ENV } from '../config/config.module';
 
 const RETRY_ATTEMPTS = 4;
+
+/**
+ * Anything that can change the price (address → tax, method → shipping)
+ * discards the reviewed snapshot, so a payment intent can't be created until
+ * the session is reviewed again (`createPaymentIntent` requires both).
+ */
+const INVALIDATE_REVIEW = { cartSnapshot: Prisma.DbNull, totalAmount: 0 } as const;
 
 @Injectable()
 export class CheckoutDomainService {
@@ -55,7 +62,10 @@ export class CheckoutDomainService {
 
   async setShippingAddress(checkoutId: string, addressJson: Prisma.InputJsonValue) {
     return this.withRetry(checkoutId, (session) =>
-      this.repo.update(session.id, session.version, { shippingAddress: addressJson }),
+      this.repo.update(session.id, session.version, {
+        shippingAddress: addressJson,
+        ...INVALIDATE_REVIEW,
+      }),
     );
   }
 
@@ -70,6 +80,7 @@ export class CheckoutDomainService {
       this.repo.update(session.id, session.version, {
         shippingMethod: methodJson,
         shippingAmount: amount,
+        ...INVALIDATE_REVIEW,
       }),
     );
   }
@@ -83,9 +94,13 @@ export class CheckoutDomainService {
       discountAmount: number;
       totalAmount: number;
     },
+    cartSnapshot: CartSnapshot,
   ) {
     return this.withRetry(checkoutId, (session) =>
-      this.repo.update(session.id, session.version, totals),
+      this.repo.update(session.id, session.version, {
+        ...totals,
+        cartSnapshot: cartSnapshot as unknown as Prisma.InputJsonValue,
+      }),
     );
   }
 
@@ -95,23 +110,6 @@ export class CheckoutDomainService {
         paymentProvider: provider,
         paymentIntentRef: providerRef,
         status: CheckoutStatus.AWAITING_PAYMENT,
-      }),
-    );
-  }
-
-  async attachReservations(checkoutId: string, reservationIds: string[]) {
-    return this.withRetry(checkoutId, (session) =>
-      this.repo.update(session.id, session.version, {
-        reservationIds: [...session.reservationIds, ...reservationIds],
-      }),
-    );
-  }
-
-  async markCompleted(checkoutId: string, orderId: string) {
-    return this.withRetry(checkoutId, (session) =>
-      this.repo.update(session.id, session.version, {
-        status: CheckoutStatus.COMPLETED,
-        orderId,
       }),
     );
   }

@@ -38,7 +38,7 @@ export class CartDomainService {
       id: uuidv7(),
       ...(input.customerId ? { customerId: input.customerId } : {}),
       ...(input.anonymousId ? { anonymousId: input.anonymousId } : {}),
-      currency: input.currency ?? 'GBP',
+      currency: input.currency ?? 'NGN',
       status: 'ACTIVE',
     });
   }

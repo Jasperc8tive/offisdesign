@@ -6,17 +6,20 @@ import { PrismaService } from '../prisma/prisma.service';
 export class PaymentRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(input: {
-    id: string;
-    orderId: string;
-    provider: string;
-    providerRef: string;
-    amount: number;
-    currency: string;
-    status: PaymentStatus;
-    providerData: Prisma.InputJsonValue;
-  }) {
-    return this.prisma.payment.create({ data: input });
+  create(
+    input: {
+      id: string;
+      orderId: string;
+      provider: string;
+      providerRef: string;
+      amount: number;
+      currency: string;
+      status: PaymentStatus;
+      providerData: Prisma.InputJsonValue;
+    },
+    tx: Prisma.TransactionClient = this.prisma,
+  ) {
+    return tx.payment.create({ data: input });
   }
 
   findByProviderRef(provider: string, providerRef: string) {

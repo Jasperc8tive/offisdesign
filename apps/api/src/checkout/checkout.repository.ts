@@ -6,8 +6,8 @@ import { PrismaService } from '../prisma/prisma.service';
 export class CheckoutRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  findById(id: string) {
-    return this.prisma.checkoutSession.findUnique({ where: { id } });
+  findById(id: string, tx: Prisma.TransactionClient = this.prisma) {
+    return tx.checkoutSession.findUnique({ where: { id } });
   }
 
   findByCart(cartId: string) {
@@ -19,13 +19,18 @@ export class CheckoutRepository {
   }
 
   /** Optimistic update returning null on stale version. */
-  async update(id: string, expectedVersion: number, data: Prisma.CheckoutSessionUpdateInput) {
-    const res = await this.prisma.checkoutSession.updateMany({
+  async update(
+    id: string,
+    expectedVersion: number,
+    data: Prisma.CheckoutSessionUpdateManyMutationInput,
+    tx: Prisma.TransactionClient = this.prisma,
+  ) {
+    const res = await tx.checkoutSession.updateMany({
       where: { id, version: expectedVersion },
       data: { ...data, version: { increment: 1 } },
     });
     if (res.count === 0) return null;
-    return this.findById(id);
+    return this.findById(id, tx);
   }
 
   findExpired(limit = 200) {

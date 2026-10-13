@@ -33,13 +33,26 @@ export class MockPaymentService implements PaymentService {
     return intent;
   }
 
+  async retrieve(providerRef: string): Promise<PaymentIntent> {
+    const intent = this.intents.get(providerRef);
+    if (!intent) throw new Error(`Unknown mock intent ${providerRef}`);
+    return intent;
+  }
+
+  async updateAmount(providerRef: string, amount: number): Promise<PaymentIntent> {
+    const intent = await this.retrieve(providerRef);
+    const updated = { ...intent, amount };
+    this.intents.set(providerRef, updated);
+    return updated;
+  }
+
   async confirm(providerRef: string): Promise<ConfirmedPayment> {
     const intent = this.intents.get(providerRef);
     if (!intent) {
       return {
         providerRef,
         amount: 0,
-        currency: 'GBP',
+        currency: 'NGN',
         status: 'failed',
         failureReason: 'unknown_intent',
         raw: { id: providerRef, mock: true },
@@ -58,7 +71,7 @@ export class MockPaymentService implements PaymentService {
     return {
       providerRef: `mock_re_${uuidv7()}`,
       amount: input.amount,
-      currency: 'GBP',
+      currency: 'NGN',
       status: 'succeeded',
       raw: { id: input.providerRef, mock: true, refunded: input.amount },
     };
