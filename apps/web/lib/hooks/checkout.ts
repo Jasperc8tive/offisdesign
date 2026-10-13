@@ -31,7 +31,7 @@ export function useSetShippingAddress(sessionId: string) {
 export function useSetShippingMethod(sessionId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (method: Record<string, unknown>) =>
+    mutationFn: (method: { rateId: string }) =>
       checkoutService.setShippingMethod(sessionId, method),
     onSuccess: () => qc.invalidateQueries({ queryKey: checkoutKeys.rates(sessionId) }),
   });

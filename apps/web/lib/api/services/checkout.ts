@@ -33,7 +33,8 @@ export const checkoutService = {
     });
   },
 
-  async setShippingMethod(id: string, method: Record<string, unknown>) {
+  /** Only the quoted rate id is sent; the server owns the price. */
+  async setShippingMethod(id: string, method: { rateId: string }) {
     return apiFetch(checkoutSessionSchema, {
       method: 'POST',
       path: `/v1/checkout/${encodeURIComponent(id)}/shipping-method`,
@@ -61,6 +62,7 @@ export const checkoutService = {
         provider: z.string(),
         providerRef: z.string(),
         clientSecret: z.string().nullable().optional(),
+        status: z.string().optional(),
       }),
       {
         method: 'POST',
