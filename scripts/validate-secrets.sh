@@ -31,7 +31,9 @@ STRIPE_KEYS=(STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET)
 SMTP_KEYS=(SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASSWORD)
 
 MIN_LEN_BY_KEY_PREFIX_JWT=32
-PLACEHOLDER_PATTERN='^(REPLACE|CHANGE_?ME|TODO|XXX|<.*>)$'
+# Case-insensitive substring match, so sk_live_REPLACE / REPLACE_WITH_48_BYTE_SECRET
+# / change-me-… are all caught.
+PLACEHOLDER_PATTERN='(replace|change[-_]?me|example|placeholder|^<.*>$|^todo$|^x{3,}$)'
 
 if ! command -v kubectl >/dev/null 2>&1; then
   echo "ERROR: kubectl not found in PATH" >&2
@@ -57,7 +59,7 @@ check_key() {
     errors=$((errors + 1))
     return
   fi
-  if [[ "$value" =~ $PLACEHOLDER_PATTERN ]]; then
+  if [[ "${value,,}" =~ $PLACEHOLDER_PATTERN ]]; then
     echo "  ✗ $key still holds a placeholder value ('$value')"
     errors=$((errors + 1))
     return
@@ -92,6 +94,10 @@ if [[ "$storage_driver" == "s3" ]]; then
 fi
 
 payment_provider=$(get_key PAYMENT_PROVIDER)
+if [[ -z "$payment_provider" || "$payment_provider" == "mock" ]]; then
+  echo "  ✗ PAYMENT_PROVIDER must be set to a real provider (got '${payment_provider:-unset}')"
+  errors=$((errors + 1))
+fi
 if [[ "$payment_provider" == "stripe" ]]; then
   echo "PAYMENT_PROVIDER=stripe — checking Stripe keys:"
   for k in "${STRIPE_KEYS[@]}"; do check_key "$k"; done
