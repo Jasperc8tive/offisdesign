@@ -1,4 +1,11 @@
-import { BadRequestException, ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  Logger,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { CheckoutStatus, PaymentStatus, type Prisma } from '@offisdesign/database';
 import { uuidv7 } from 'uuidv7';
 import { CheckoutDomainService } from './checkout.domain';
@@ -14,7 +21,7 @@ import { InventoryApplicationService } from '../inventory/inventory.app';
 import { EventBus } from '../events/event-bus.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { generateOrderNumber } from './order-number';
-import { buildSnapshot, cartFingerprint, readSnapshot } from './checkout.snapshot';
+import { MAX_MONEY, buildSnapshot, cartFingerprint, readSnapshot } from './checkout.snapshot';
 import type { SetAddressInput, SetShippingMethodInput } from './dto/checkout.dto';
 
 const DEFAULT_WAREHOUSE_CODE = process.env.DEFAULT_WAREHOUSE_CODE ?? 'WH-MAIN';
@@ -145,6 +152,7 @@ export class CheckoutApplicationService {
       destinationCountry: ship.countryCode,
       ...(ship.region ? { destinationRegion: ship.region } : {}),
       shippingAmount,
+      discountAmount: quote.discount,
       lines: cart.items.map((i) => ({
         variantId: i.variantId,
         productId: i.variantId,
@@ -162,6 +170,15 @@ export class CheckoutApplicationService {
       discountAmount: quote.discount,
       totalAmount: quote.total + shippingAmount + taxQuote.totalTax,
     };
+    // Money columns are int4 (kobo) until the BigInt migration: stop oversized
+    // orders here, before anything is snapshotted or charged.
+    const largestLine = Math.max(...cart.items.map((i) => i.unitAmount * i.quantity));
+    if (Math.max(totals.totalAmount, totals.subtotalAmount, largestLine) > MAX_MONEY) {
+      throw new UnprocessableEntityException({
+        code: 'ORDER_TOO_LARGE',
+        message: 'Orders of this size are handled by our team — please request a quote.',
+      });
+    }
     const variants = await this.prisma.productVariant.findMany({
       where: { id: { in: cart.items.map((i) => i.variantId) } },
       include: { product: true },

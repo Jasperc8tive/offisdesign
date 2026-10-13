@@ -82,6 +82,14 @@ What the platform deliberately doesn't do at RC1, with the reason for each defer
 
 **Action**: 1.0.1.
 
+## 11. Order size capped at ≈ ₦21.47M
+
+**Status**: money columns are 32-bit integers in kobo, so no amount can exceed 2,147,483,647 kobo (≈ ₦21.47M). Checkout rejects larger orders at the review step (`422 ORDER_TOO_LARGE`), before any payment, and the storefront offers "Request a quote" instead.
+
+**Why**: migrating every money column to `BIGINT` touches each amount in the API and its JSON responses; it ships as its own change.
+
+**Action**: BigInt migration PR.
+
 ## Accepted risks summary
 
 | Limitation                     | Severity | Mitigation in place                                              |
@@ -93,5 +101,6 @@ What the platform deliberately doesn't do at RC1, with the reason for each defer
 | Cross-browser matrix unrun     | Medium   | Smoke tests T-1h; extended pass week 1                           |
 | Load test un-run               | Medium   | HPA + monitoring will catch problems live                        |
 | Maintenance-mode endpoint stub | Low      | Workaround: scale replicas to 0                                  |
+| Order size cap (≈ ₦21.47M)     | Medium   | Rejected before payment; customer routed to "Request a quote"    |
 
 None of these are launch-blocking individually. The "GO WITH CONDITIONS" recommendation in the RC1 report names the subset that must complete before T-0.
