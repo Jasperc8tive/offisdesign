@@ -28,14 +28,14 @@ function disc(partial: Partial<Discount>): Discount {
 }
 
 const baseRequest: QuoteRequest = {
-  currency: 'GBP',
+  currency: 'NGN',
   couponCodes: [],
   lines: [
     {
       variantId: 'v1',
       productId: 'p1',
       collectionIds: ['c1'],
-      unitAmount: 10_000, // £100.00
+      unitAmount: 10_000, // ₦100.00 (kobo)
       quantity: 2,
     },
   ],
@@ -110,7 +110,7 @@ describe('PromotionEngineService', () => {
           scope: 'CART',
           kind: 'FIXED',
           value: 999_999,
-          currency: 'GBP',
+          currency: 'NGN',
         }),
       ],
       byCode: [],

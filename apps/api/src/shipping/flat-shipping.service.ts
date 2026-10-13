@@ -11,12 +11,14 @@ import type {
 } from './shipping.interface';
 
 /**
- * Mock shipping driver:
- * - Standard service: `SHIPPING_FLAT_AMOUNT` (free above £500 subtotal).
- * - Express service: standard + £15.00.
+ * Flat shipping driver (amounts in kobo, all env-configured):
+ * - Standard: `SHIPPING_FLAT_AMOUNT`, free at or above `SHIPPING_FREE_THRESHOLD`
+ *   (unset = never free).
+ * - Express: standard + `SHIPPING_EXPRESS_SURCHARGE`; only offered when the
+ *   surcharge is set (> 0).
  *
- * `createShipment` returns a fake tracking number. Real carriers
- * (Royal Mail, DPD, Stripe-Shipping…) implement the same interface.
+ * `createShipment` returns a fake tracking number. Real carriers implement the
+ * same interface.
  */
 @Injectable()
 export class FlatShippingService implements ShippingService {
@@ -25,8 +27,10 @@ export class FlatShippingService implements ShippingService {
   constructor(@Inject(API_ENV) private readonly env: ApiEnv) {}
 
   async rates(req: ShippingRateRequest): Promise<ShippingRate[]> {
-    const base = req.subtotal >= 50_000 ? 0 : this.env.SHIPPING_FLAT_AMOUNT;
-    return [
+    const threshold = this.env.SHIPPING_FREE_THRESHOLD;
+    const base =
+      threshold !== undefined && req.subtotal >= threshold ? 0 : this.env.SHIPPING_FLAT_AMOUNT;
+    const rates: ShippingRate[] = [
       {
         id: 'standard',
         carrier: 'Internal',
@@ -36,16 +40,19 @@ export class FlatShippingService implements ShippingService {
         estimatedDaysMin: 3,
         estimatedDaysMax: 5,
       },
-      {
+    ];
+    if (this.env.SHIPPING_EXPRESS_SURCHARGE > 0) {
+      rates.push({
         id: 'express',
         carrier: 'Internal',
         service: 'Express',
-        amount: base + 1500,
+        amount: base + this.env.SHIPPING_EXPRESS_SURCHARGE,
         currency: req.currency,
         estimatedDaysMin: 1,
         estimatedDaysMax: 2,
-      },
-    ];
+      });
+    }
+    return rates;
   }
 
   async createShipment(input: CreateShipmentInput): Promise<Shipment> {

@@ -167,7 +167,7 @@ export class CatalogApplicationService {
             productId: before.id,
             oldAmount: oldPrice,
             newAmount: input.priceAmount,
-            currency: input.priceCurrency ?? 'GBP',
+            currency: input.priceCurrency ?? 'NGN',
           },
           actorId,
         );

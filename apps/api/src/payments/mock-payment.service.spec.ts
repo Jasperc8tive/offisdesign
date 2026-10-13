@@ -6,7 +6,7 @@ describe('MockPaymentService', () => {
   it('creates an intent that can be confirmed', async () => {
     const intent = await svc.createIntent({
       amount: 12_000,
-      currency: 'GBP',
+      currency: 'NGN',
       reference: 'checkout-1',
     });
     expect(intent.providerRef).toMatch(/^mock_pi_/);
@@ -15,7 +15,7 @@ describe('MockPaymentService', () => {
     const confirmed = await svc.confirm(intent.providerRef);
     expect(confirmed.status).toBe('succeeded');
     expect(confirmed.amount).toBe(12_000);
-    expect(confirmed.currency).toBe('GBP');
+    expect(confirmed.currency).toBe('NGN');
   });
 
   it('retrieves and re-prices an intent', async () => {

@@ -1,7 +1,7 @@
 /** Minor units → display string with currency. */
 export function formatMoney(amount: number, currency: string): string {
   try {
-    return new Intl.NumberFormat('en-GB', {
+    return new Intl.NumberFormat('en-NG', {
       style: 'currency',
       currency,
       maximumFractionDigits: 2,
@@ -12,7 +12,7 @@ export function formatMoney(amount: number, currency: string): string {
 }
 
 export function formatNumber(value: number): string {
-  return new Intl.NumberFormat('en-GB').format(value);
+  return new Intl.NumberFormat('en-NG').format(value);
 }
 
 export function formatDate(iso: string): string {

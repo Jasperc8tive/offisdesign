@@ -62,7 +62,7 @@ export default function DashboardPage() {
     orders.data?.data
       .filter((o) => o.status !== 'CANCELLED')
       .reduce((sum, o) => sum + o.totalAmount, 0) ?? 0;
-  const currency = orders.data?.data[0]?.currency ?? 'GBP';
+  const currency = orders.data?.data[0]?.currency ?? 'NGN';
   const failedJobs = queues.data?.queues.reduce((sum, q) => sum + q.failed, 0) ?? 0;
   const activeJobs = queues.data?.queues.reduce((sum, q) => sum + q.active, 0) ?? 0;
 
