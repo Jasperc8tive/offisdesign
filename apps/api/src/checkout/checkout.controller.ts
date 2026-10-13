@@ -96,8 +96,9 @@ export class CheckoutController {
   }
 
   /**
-   * Idempotent — requires `Idempotency-Key` header. Re-running with the same
-   * key returns the stored response; with a different body, returns 409.
+   * Idempotent — `placeOrder` serializes per session and replays the existing
+   * order once COMPLETED. The `Idempotency-Key` cache is scoped to the session
+   * so a key reused from another checkout can never replay that order.
    */
   @Post(':id/place')
   async place(
@@ -105,8 +106,10 @@ export class CheckoutController {
     @Body(new ZodValidationPipe(placeOrderSchema)) body: PlaceOrderInput,
     @Headers('idempotency-key') idempotencyKey: string | undefined,
   ) {
-    const key = idempotencyKey ?? `auto:${id}:place`;
-    return this.idempotency.run(key, body, 201, () => this.app.placeOrder(id));
+    const key = `place:${id}:${idempotencyKey ?? 'auto'}`;
+    return this.idempotency.run(key, body, 201, () =>
+      this.app.placeOrder(id, body.paymentIntentRef),
+    );
   }
 
   // Orders (customer)

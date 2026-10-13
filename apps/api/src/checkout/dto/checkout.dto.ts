@@ -9,13 +9,12 @@ export type StartCheckoutInput = z.infer<typeof startCheckoutSchema>;
 export const setAddressSchema = addressSchema;
 export type SetAddressInput = z.infer<typeof setAddressSchema>;
 
+/**
+ * The client only names a quoted rate; carrier, service and amount are
+ * resolved server-side from `ShippingService.rates()` so they can't be forged.
+ */
 export const setShippingMethodSchema = z.object({
   rateId: z.string().min(1),
-  amount: z.number().int().min(0),
-  carrier: z.string().min(1),
-  service: z.string().min(1),
-  estimatedDaysMin: z.number().int().min(0),
-  estimatedDaysMax: z.number().int().min(0),
 });
 export type SetShippingMethodInput = z.infer<typeof setShippingMethodSchema>;
 

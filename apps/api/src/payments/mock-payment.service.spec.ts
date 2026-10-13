@@ -18,6 +18,16 @@ describe('MockPaymentService', () => {
     expect(confirmed.currency).toBe('GBP');
   });
 
+  it('retrieves and re-prices an intent', async () => {
+    const intent = await svc.createIntent({ amount: 10_000, currency: 'NGN', reference: 'c-2' });
+    expect((await svc.retrieve(intent.providerRef)).clientSecret).toBe(intent.clientSecret);
+
+    const updated = await svc.updateAmount(intent.providerRef, 15_000);
+    expect(updated.amount).toBe(15_000);
+    expect((await svc.confirm(intent.providerRef)).amount).toBe(15_000);
+    await expect(svc.retrieve('mock_pi_missing')).rejects.toThrow();
+  });
+
   it('fails to confirm an unknown intent', async () => {
     const confirmed = await svc.confirm('mock_pi_does_not_exist');
     expect(confirmed.status).toBe('failed');

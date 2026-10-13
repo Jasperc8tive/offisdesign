@@ -1016,6 +1016,9 @@ model CheckoutSession {
   paymentProvider String?        @map("payment_provider")
   paymentIntentRef String?       @map("payment_intent_ref")
   reservationIds  String[]       @map("reservation_ids") @db.Uuid
+  /// Priced cart lines frozen at review time; the order is built from this,
+  /// never from the live cart. Cleared whenever address/shipping changes.
+  cartSnapshot    Json?          @map("cart_snapshot")
   orderId         String?        @unique @map("order_id") @db.Uuid
   expiresAt       DateTime       @map("expires_at") @db.Timestamptz(6)
   /// Optimistic concurrency.

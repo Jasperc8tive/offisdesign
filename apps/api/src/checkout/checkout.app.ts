@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
 import { CheckoutStatus, PaymentStatus, type Prisma } from '@offisdesign/database';
 import { uuidv7 } from 'uuidv7';
 import { CheckoutDomainService } from './checkout.domain';
@@ -14,12 +14,18 @@ import { InventoryApplicationService } from '../inventory/inventory.app';
 import { EventBus } from '../events/event-bus.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { generateOrderNumber } from './order-number';
+import { buildSnapshot, cartFingerprint, readSnapshot } from './checkout.snapshot';
 import type { SetAddressInput, SetShippingMethodInput } from './dto/checkout.dto';
 
 const DEFAULT_WAREHOUSE_CODE = process.env.DEFAULT_WAREHOUSE_CODE ?? 'WH-MAIN';
 
+/** Holds the per-session advisory lock across the provider confirm call. */
+const PLACE_TX_OPTIONS = { timeout: 30_000, maxWait: 10_000 };
+
 @Injectable()
 export class CheckoutApplicationService {
+  private readonly logger = new Logger(CheckoutApplicationService.name);
+
   constructor(
     private readonly domain: CheckoutDomainService,
     private readonly repo: CheckoutRepository,
@@ -74,26 +80,52 @@ export class CheckoutApplicationService {
     });
   }
 
+  /**
+   * The client only names a rate; the price comes from a fresh server-side
+   * quote so it can't be forged.
+   */
   async setShippingMethod(checkoutId: string, method: SetShippingMethodInput) {
+    const rate = await this.resolveRate(checkoutId, method.rateId);
     return this.domain.setShippingMethod(
       checkoutId,
-      method as unknown as Prisma.InputJsonValue,
-      method.amount,
+      rate as unknown as Prisma.InputJsonValue,
+      rate.amount,
     );
+  }
+
+  private async resolveRate(checkoutId: string, rateId: string) {
+    const rates = await this.getShippingRates(checkoutId);
+    const rate = rates.find((r) => r.id === rateId);
+    if (!rate) {
+      throw new BadRequestException({
+        code: 'INVALID_SHIPPING_RATE',
+        message: 'That delivery option is no longer available.',
+      });
+    }
+    return rate;
   }
 
   /**
    * Compute review totals — subtotal, discount, tax, shipping, total — and
-   * persist them on the session. Idempotent.
+   * persist them on the session together with a snapshot of the priced cart
+   * lines. Idempotent.
    */
   async computeReview(checkoutId: string) {
     const session = await this.repo.findById(checkoutId);
     if (!session) throw new BadRequestException({ code: 'NOT_FOUND' });
     const cart = await this.carts.findById(session.cartId);
     if (!cart) throw new BadRequestException({ code: 'NOT_FOUND' });
+    if (cart.items.length === 0) throw new BadRequestException({ code: 'CART_EMPTY' });
     if (!session.shippingAddress) {
       throw new BadRequestException({ code: 'NO_SHIPPING_ADDRESS' });
     }
+    const method = session.shippingMethod as { id?: string } | null;
+    if (!method?.id) {
+      throw new BadRequestException({ code: 'NO_SHIPPING_METHOD' });
+    }
+    // Re-quote: the cart may have crossed a free-shipping threshold since the
+    // method was chosen.
+    const shippingAmount = (await this.resolveRate(checkoutId, method.id)).amount;
     const ship = session.shippingAddress as { countryCode: string; region?: string };
 
     const quote = await this.pricing.quote({
@@ -112,7 +144,7 @@ export class CheckoutApplicationService {
       currency: cart.currency,
       destinationCountry: ship.countryCode,
       ...(ship.region ? { destinationRegion: ship.region } : {}),
-      shippingAmount: session.shippingAmount,
+      shippingAmount,
       lines: cart.items.map((i) => ({
         variantId: i.variantId,
         productId: i.variantId,
@@ -125,18 +157,22 @@ export class CheckoutApplicationService {
 
     const totals = {
       subtotalAmount: quote.subtotal,
-      shippingAmount: session.shippingAmount,
+      shippingAmount,
       taxAmount: taxQuote.totalTax,
       discountAmount: quote.discount,
-      totalAmount: quote.total + session.shippingAmount + taxQuote.totalTax,
+      totalAmount: quote.total + shippingAmount + taxQuote.totalTax,
     };
-    const updated = await this.domain.setTotals(checkoutId, totals);
+    const variants = await this.prisma.productVariant.findMany({
+      where: { id: { in: cart.items.map((i) => i.variantId) } },
+      include: { product: true },
+    });
+    const updated = await this.domain.setTotals(checkoutId, totals, buildSnapshot(cart, variants));
     return { session: updated, quote, taxQuote };
   }
 
   /**
-   * Create (or reuse) a payment intent for the current totals. Idempotent on
-   * the checkout session.
+   * Create (or reuse) a payment intent for the reviewed totals. Idempotent on
+   * the checkout session; a reused intent is re-priced if the total changed.
    */
   async createPaymentIntent(checkoutId: string) {
     const session = await this.repo.findById(checkoutId);
@@ -144,16 +180,36 @@ export class CheckoutApplicationService {
     if (session.status === CheckoutStatus.COMPLETED) {
       throw new BadRequestException({ code: 'ALREADY_COMPLETED' });
     }
-    if (session.totalAmount <= 0) {
+    const snapshot = readSnapshot(session.cartSnapshot);
+    if (session.totalAmount <= 0 || !snapshot) {
       throw new BadRequestException({
         code: 'NO_TOTAL',
         message: 'Compute totals before payment.',
       });
     }
+    const cart = await this.carts.findById(session.cartId);
+    if (!cart || cartFingerprint(cart) !== snapshot.fingerprint) {
+      throw new ConflictException({
+        code: 'CHECKOUT_STALE',
+        message: 'Your cart changed. Please review your order again.',
+      });
+    }
     if (session.paymentIntentRef && session.paymentProvider) {
+      let intent = await this.payment.retrieve(session.paymentIntentRef);
+      if (intent.amount !== session.totalAmount) {
+        if (intent.status === 'succeeded') {
+          throw new ConflictException({
+            code: 'PAYMENT_AMOUNT_MISMATCH',
+            message: 'This payment no longer matches your order total.',
+          });
+        }
+        intent = await this.payment.updateAmount(intent.providerRef, session.totalAmount);
+      }
       return {
         provider: session.paymentProvider,
-        providerRef: session.paymentIntentRef,
+        providerRef: intent.providerRef,
+        clientSecret: intent.clientSecret,
+        status: intent.status,
       };
     }
     const intent = await this.payment.createIntent({
@@ -167,156 +223,59 @@ export class CheckoutApplicationService {
       provider: this.payment.provider,
       providerRef: intent.providerRef,
       clientSecret: intent.clientSecret,
+      status: intent.status,
     };
   }
 
   /**
-   * Place the order. The pipeline is wrapped in a Prisma transaction so the
-   * database mutations roll back together; inventory + payment side effects
-   * are compensated outside the transaction if a later step fails.
+   * Place the order from the reviewed snapshot.
+   *
+   * The whole pipeline runs inside one Prisma transaction that first takes a
+   * per-session advisory lock, so concurrent `/place` calls (double-clicks,
+   * retries, the 3DS return) are serialized: the loser re-reads the session,
+   * sees COMPLETED and returns the existing order.
    *
    * Sequence:
-   *   1. Validate cart + session.
-   *   2. Reserve stock for every line.
-   *   3. Confirm the payment intent (re-verify with provider).
-   *   4. Create the order row + items + payment + ledger.
-   *   5. Commit reservations (decrement onHand).
-   *   6. Clear cart, mark session COMPLETED.
-   *   7. Emit `order.placed` + `payment.succeeded` + `checkout.completed`.
+   *   1. Lock, re-read session, short-circuit on replay.
+   *   2. Reserve stock for every snapshot line.
+   *   3. Confirm the payment with the provider; amount + currency must equal
+   *      the reviewed total.
+   *   4. Persist order + items + payment + ledger, mark cart CHECKED_OUT and
+   *      session COMPLETED — all on the transaction client.
+   *   5. Commit reservations (decrement onHand) after the transaction.
+   *   6. Emit `payment.succeeded` + `order.placed` + `checkout.completed`.
+   *
+   * Any failure in 2–4 releases the reservations taken by this call.
    */
-  async placeOrder(checkoutId: string) {
-    const session = await this.repo.findById(checkoutId);
-    if (!session) throw new BadRequestException({ code: 'NOT_FOUND' });
-    if (session.status === CheckoutStatus.COMPLETED && session.orderId) {
-      const existing = await this.orders.findById(session.orderId);
-      if (existing) return existing; // idempotent replay
-    }
-    if (!session.paymentIntentRef || !session.paymentProvider) {
-      throw new BadRequestException({ code: 'NO_PAYMENT_INTENT' });
-    }
-    const cart = await this.carts.findById(session.cartId);
-    if (!cart || cart.items.length === 0) {
-      throw new BadRequestException({ code: 'CART_EMPTY' });
-    }
-    if (!session.shippingAddress) {
-      throw new BadRequestException({ code: 'NO_SHIPPING_ADDRESS' });
-    }
-
-    // Resolve the default warehouse (single-warehouse launch).
-    const warehouse = await this.prisma.warehouse.findUnique({
-      where: { code: DEFAULT_WAREHOUSE_CODE },
-    });
-    if (!warehouse) {
-      throw new BadRequestException({
-        code: 'NO_WAREHOUSE',
-        message: `Default warehouse "${DEFAULT_WAREHOUSE_CODE}" is not configured.`,
-      });
-    }
-
-    // 1. Reserve stock for every line. Re-uses existing reservations if any.
-    const newReservations: string[] = [];
-    for (const line of cart.items) {
-      const result = await this.inventory.reserve(
-        {
-          variantId: line.variantId,
-          warehouseId: warehouse.id,
-          quantity: line.quantity,
-          contextType: 'checkout',
-          contextId: session.id,
-          ttlSec: 30 * 60,
-        },
-        session.customerId ?? undefined,
+  async placeOrder(checkoutId: string, paymentIntentRef?: string) {
+    const reservations: string[] = [];
+    let result: Awaited<ReturnType<CheckoutApplicationService['placeInLock']>>;
+    try {
+      result = await this.prisma.$transaction(
+        (tx) => this.placeInLock(tx, checkoutId, paymentIntentRef, reservations),
+        PLACE_TX_OPTIONS,
       );
-      newReservations.push(result.reservation.id);
-    }
-    if (newReservations.length > 0) {
-      await this.domain.attachReservations(session.id, newReservations);
-    }
-
-    // 2. Confirm payment with provider.
-    const confirmed = await this.payment.confirm(session.paymentIntentRef);
-    if (confirmed.status !== 'succeeded') {
-      await this.events.publish('payment.failed', 'checkout_session', session.id, {
-        orderId: session.id,
-        provider: session.paymentProvider,
-        providerRef: session.paymentIntentRef,
-        reason: confirmed.failureReason ?? confirmed.status,
-      });
-      // Release reservations on payment failure.
-      for (const id of newReservations) {
+    } catch (err) {
+      for (const id of reservations) {
         await this.inventory.release(id).catch(() => undefined);
       }
-      throw new BadRequestException({
-        code: 'PAYMENT_NOT_SUCCEEDED',
-        message: confirmed.failureReason ?? 'Payment was not successful.',
+      throw err;
+    }
+    if (result.replay) return result.order;
+
+    const { order, session, confirmed } = result;
+    for (const id of reservations) {
+      await this.inventory.commit(id).catch(async (err: unknown) => {
+        const reason = err instanceof Error ? err.message : String(err);
+        this.logger.error(`Commit of reservation ${id} for order ${order.id} failed: ${reason}`);
+        await this.events.publish('inventory.commit_failed', 'order', order.id, {
+          orderId: order.id,
+          reservationId: id,
+          reason,
+        });
       });
     }
 
-    // 3. Persist order + payment + ledger inside a transaction.
-    const orderId = uuidv7();
-    const orderNumber = generateOrderNumber();
-    const order = await this.orders.inTx(async (_tx) => {
-      const created = await this.orders.create({
-        id: orderId,
-        number: orderNumber,
-        ...(session.customerId ? { customerId: session.customerId } : {}),
-        email: session.email,
-        currency: session.currency,
-        subtotalAmount: session.subtotalAmount,
-        shippingAmount: session.shippingAmount,
-        taxAmount: session.taxAmount,
-        discountAmount: session.discountAmount,
-        totalAmount: session.totalAmount,
-        status: 'PAID',
-        placedAt: new Date(),
-        shippingAddress: session.shippingAddress as object,
-        ...(session.billingAddress ? { billingAddress: session.billingAddress as object } : {}),
-        items: {
-          create: cart.items.map((i) => ({
-            id: uuidv7(),
-            variantId: i.variantId,
-            productName: 'TBD', // resolved from variant lookup in production view
-            sku: 'TBD',
-            quantity: i.quantity,
-            unitAmount: i.unitAmount,
-            totalAmount: i.unitAmount * i.quantity,
-            currency: i.currency,
-          })),
-        },
-      });
-      await this.payments.create({
-        id: uuidv7(),
-        orderId: created.id,
-        provider: session.paymentProvider as string,
-        providerRef: session.paymentIntentRef as string,
-        amount: confirmed.amount,
-        currency: confirmed.currency,
-        status: PaymentStatus.CAPTURED,
-        providerData: confirmed.raw as object,
-      });
-      await this.orders.appendEvent({
-        id: uuidv7(),
-        orderId: created.id,
-        kind: 'OrderPlaced',
-        payload: { number: orderNumber },
-      });
-      return created;
-    });
-
-    // 4. Commit reservations (decrement onHand). Outside the order tx so a
-    //    failure here is a recoverable inventory issue, not a lost order.
-    for (const id of newReservations) {
-      await this.inventory.commit(id).catch(() => undefined);
-    }
-
-    // 5. Clear cart + mark session complete.
-    await this.prisma.cart.update({
-      where: { id: cart.id },
-      data: { status: 'CHECKED_OUT' },
-    });
-    await this.domain.markCompleted(session.id, order.id);
-
-    // 6. Events.
     await this.events.publish('payment.succeeded', 'order', order.id, {
       orderId: order.id,
       provider: session.paymentProvider as string,
@@ -336,6 +295,162 @@ export class CheckoutApplicationService {
     });
 
     return order;
+  }
+
+  private async placeInLock(
+    tx: Prisma.TransactionClient,
+    checkoutId: string,
+    paymentIntentRef: string | undefined,
+    reservations: string[],
+  ) {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${checkoutId}))`;
+
+    const session = await this.repo.findById(checkoutId, tx);
+    if (!session) throw new BadRequestException({ code: 'NOT_FOUND' });
+    if (session.status === CheckoutStatus.COMPLETED && session.orderId) {
+      const existing = await this.orders.findById(session.orderId);
+      if (existing) return { replay: true as const, order: existing };
+    }
+    if (!session.paymentIntentRef || !session.paymentProvider) {
+      throw new BadRequestException({ code: 'NO_PAYMENT_INTENT' });
+    }
+    if (paymentIntentRef && paymentIntentRef !== session.paymentIntentRef) {
+      throw new BadRequestException({ code: 'PAYMENT_REF_MISMATCH' });
+    }
+    const snapshot = readSnapshot(session.cartSnapshot);
+    if (!snapshot || snapshot.lines.length === 0) {
+      throw new BadRequestException({ code: 'NOT_REVIEWED', message: 'Review your order first.' });
+    }
+    if (!session.shippingAddress) {
+      throw new BadRequestException({ code: 'NO_SHIPPING_ADDRESS' });
+    }
+
+    // Resolve the default warehouse (single-warehouse launch).
+    const warehouse = await tx.warehouse.findUnique({
+      where: { code: DEFAULT_WAREHOUSE_CODE },
+    });
+    if (!warehouse) {
+      throw new BadRequestException({
+        code: 'NO_WAREHOUSE',
+        message: `Default warehouse "${DEFAULT_WAREHOUSE_CODE}" is not configured.`,
+      });
+    }
+
+    // 2. Reserve stock for exactly what was reviewed.
+    for (const line of snapshot.lines) {
+      const reserved = await this.inventory.reserve(
+        {
+          variantId: line.variantId,
+          warehouseId: warehouse.id,
+          quantity: line.quantity,
+          contextType: 'checkout',
+          contextId: session.id,
+          ttlSec: 30 * 60,
+        },
+        session.customerId ?? undefined,
+      );
+      reservations.push(reserved.reservation.id);
+    }
+
+    // 3. Confirm payment with the provider and reconcile against the total.
+    const confirmed = await this.payment.confirm(session.paymentIntentRef);
+    if (confirmed.status !== 'succeeded') {
+      await this.events.publish('payment.failed', 'checkout_session', session.id, {
+        orderId: session.id,
+        provider: session.paymentProvider,
+        providerRef: session.paymentIntentRef,
+        reason: confirmed.failureReason ?? confirmed.status,
+      });
+      throw new BadRequestException({
+        code: 'PAYMENT_NOT_SUCCEEDED',
+        message: confirmed.failureReason ?? 'Payment was not successful.',
+      });
+    }
+    if (confirmed.amount !== session.totalAmount || confirmed.currency !== session.currency) {
+      await this.events.publish('payment.amount_mismatch', 'checkout_session', session.id, {
+        checkoutId: session.id,
+        provider: session.paymentProvider,
+        providerRef: session.paymentIntentRef,
+        expectedAmount: session.totalAmount,
+        expectedCurrency: session.currency,
+        actualAmount: confirmed.amount,
+        actualCurrency: confirmed.currency,
+      });
+      throw new ConflictException({
+        code: 'PAYMENT_AMOUNT_MISMATCH',
+        message: 'Your payment did not match the order total. Our team will contact you.',
+      });
+    }
+
+    // 4. Persist everything on the transaction client.
+    const orderNumber = generateOrderNumber();
+    const order = await this.orders.create(
+      {
+        id: uuidv7(),
+        number: orderNumber,
+        ...(session.customerId ? { customerId: session.customerId } : {}),
+        email: session.email,
+        currency: session.currency,
+        subtotalAmount: session.subtotalAmount,
+        shippingAmount: session.shippingAmount,
+        taxAmount: session.taxAmount,
+        discountAmount: session.discountAmount,
+        totalAmount: session.totalAmount,
+        status: 'PAID',
+        placedAt: new Date(),
+        shippingAddress: session.shippingAddress as object,
+        ...(session.billingAddress ? { billingAddress: session.billingAddress as object } : {}),
+        items: {
+          create: snapshot.lines.map((l) => ({
+            id: uuidv7(),
+            variantId: l.variantId,
+            productName: l.productName,
+            ...(l.variantName ? { variantName: l.variantName } : {}),
+            sku: l.sku,
+            quantity: l.quantity,
+            unitAmount: l.unitAmount,
+            totalAmount: l.unitAmount * l.quantity,
+            currency: l.currency,
+          })),
+        },
+      },
+      tx,
+    );
+    await this.payments.create(
+      {
+        id: uuidv7(),
+        orderId: order.id,
+        provider: session.paymentProvider,
+        providerRef: session.paymentIntentRef,
+        amount: confirmed.amount,
+        currency: confirmed.currency,
+        status: PaymentStatus.CAPTURED,
+        providerData: confirmed.raw as object,
+      },
+      tx,
+    );
+    await this.orders.appendEvent(
+      { id: uuidv7(), orderId: order.id, kind: 'OrderPlaced', payload: { number: orderNumber } },
+      tx,
+    );
+    await tx.cart.update({ where: { id: session.cartId }, data: { status: 'CHECKED_OUT' } });
+    const completed = await this.repo.update(
+      session.id,
+      session.version,
+      {
+        status: CheckoutStatus.COMPLETED,
+        orderId: order.id,
+        reservationIds: [...session.reservationIds, ...reservations],
+      },
+      tx,
+    );
+    if (!completed) {
+      // The session changed under us (e.g. address edited mid-placement);
+      // roll back so nothing is half-written.
+      throw new ConflictException({ code: 'STALE_VERSION' });
+    }
+
+    return { replay: false as const, order, session, confirmed };
   }
 
   async listOrders(customerId: string, page: number, pageSize: number) {

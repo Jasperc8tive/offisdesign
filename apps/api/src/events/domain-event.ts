@@ -73,6 +73,17 @@ export type DomainEventMap = {
     currency: string;
   };
   'payment.failed': { orderId: string; provider: string; providerRef: string; reason: string };
+  /** Provider captured a different amount/currency than the reviewed total — needs ops refund. */
+  'payment.amount_mismatch': {
+    checkoutId: string;
+    provider: string;
+    providerRef: string;
+    expectedAmount: number;
+    expectedCurrency: string;
+    actualAmount: number;
+    actualCurrency: string;
+  };
+  'inventory.commit_failed': { orderId: string; reservationId: string; reason: string };
   'order.placed': { orderId: string; customerId?: string; total: number; currency: string };
   'order.cancelled': { orderId: string };
   'refund.created': {

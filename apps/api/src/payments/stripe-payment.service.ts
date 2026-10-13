@@ -47,14 +47,15 @@ export class StripePaymentService implements PaymentService {
       },
       { idempotencyKey: `intent:${input.reference}` },
     );
-    return {
-      providerRef: intent.id,
-      clientSecret: intent.client_secret,
-      amount: intent.amount,
-      currency: intent.currency.toUpperCase(),
-      status: mapStatus(intent.status),
-      raw: redactedRaw(intent),
-    };
+    return toPaymentIntent(intent);
+  }
+
+  async retrieve(providerRef: string): Promise<PaymentIntent> {
+    return toPaymentIntent(await this.stripe.paymentIntents.retrieve(providerRef));
+  }
+
+  async updateAmount(providerRef: string, amount: number): Promise<PaymentIntent> {
+    return toPaymentIntent(await this.stripe.paymentIntents.update(providerRef, { amount }));
   }
 
   async confirm(providerRef: string): Promise<ConfirmedPayment> {
@@ -101,6 +102,17 @@ export class StripePaymentService implements PaymentService {
     const event = this.stripe.webhooks.constructEvent(rawBody, signatureHeader, this.webhookSecret);
     return { id: event.id, type: event.type, data: event.data };
   }
+}
+
+function toPaymentIntent(intent: Stripe.PaymentIntent): PaymentIntent {
+  return {
+    providerRef: intent.id,
+    clientSecret: intent.client_secret,
+    amount: intent.amount,
+    currency: intent.currency.toUpperCase(),
+    status: mapStatus(intent.status),
+    raw: redactedRaw(intent),
+  };
 }
 
 function mapStatus(s: Stripe.PaymentIntent.Status): PaymentIntent['status'] {
